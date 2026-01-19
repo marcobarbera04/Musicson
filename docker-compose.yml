@@ -1,0 +1,42 @@
+services:
+  apache_proj_web:
+    image: php:8.1-apache
+    container_name: apache_proj_web
+    restart: unless-stopped
+    volumes:
+      - .:/var/www/html
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql_proj_web
+    command: >
+      bash -c "docker-php-ext-install mysqli && docker-php-ext-enable mysqli && a2enmod rewrite && apache2-foreground"
+    environment:
+      APACHE_DOCUMENT_ROOT: /var/www/html
+
+  mysql_proj_web:
+    image: mysql:latest
+    container_name: mysql_proj_web
+    restart: unless-stopped
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  phpmyadmin_proj_web:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin_proj_web
+    restart: unless-stopped
+    depends_on:
+      - mysql_proj_web
+    environment:
+      PMA_HOST: mysql_proj_web
+      PMA_USER: root
+      PMA_PASSWORD: ""
+    ports:
+      - "8081:80"
+
+volumes:
+  mysql_data:
