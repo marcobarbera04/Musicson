@@ -10,7 +10,7 @@ services:
     depends_on:
       - mysql_proj_web
     command: >
-      bash -c "docker-php-ext-install mysqli && docker-php-ext-enable mysqli && a2enmod rewrite && apache2-foreground"
+      bash -c "docker-php-ext-install mysqli pdo pdo_mysql && docker-php-ext-enable mysqli pdo pdo_mysql && a2enmod rewrite && apache2-foreground"
     environment:
       APACHE_DOCUMENT_ROOT: /var/www/html
 
