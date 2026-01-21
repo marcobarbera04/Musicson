@@ -5,295 +5,280 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Documentazione Tecnica - Musicson Lessons</title>
     <style>
-        /* Stili Generali per rendere il documento professionale */
+        /* --- STILI GENERALI --- */
         body {
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             line-height: 1.6;
-            color: #333;
-            max-width: 900px;
+            color: #2c3e50;
+            max-width: 950px;
             margin: 0 auto;
             padding: 40px;
-            background-color: #fff;
+            background-color: #f8f9fa;
         }
 
-        /* Intestazioni */
-        h1 {
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 20px;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        h1 { margin: 0; color: #2c3e50; font-size: 2.2em; }
+        .subtitle { color: #7f8c8d; font-size: 1.1em; margin-top: 10px; }
+
+        /* Sezioni */
+        section {
+            background: white;
+            padding: 30px;
             margin-bottom: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
         h2 {
             color: #2980b9;
-            margin-top: 40px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 5px;
+            border-left: 5px solid #3498db;
+            padding-left: 15px;
+            margin-top: 0;
         }
 
-        h3 {
-            color: #34495e;
-            margin-top: 25px;
-        }
+        h3 { color: #34495e; margin-top: 25px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
 
         /* Testo e Liste */
-        p {
-            margin-bottom: 15px;
-            text-align: justify;
+        p { text-align: justify; margin-bottom: 15px; }
+        ul, ol { margin-bottom: 20px; padding-left: 25px; }
+        li { margin-bottom: 8px; }
+
+        /* Codice e File Tree */
+        pre {
+            background-color: #2d3436;
+            color: #dfe6e9;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+            line-height: 1.4;
         }
 
-        ul, ol {
-            margin-bottom: 20px;
-            padding-left: 25px;
-        }
-
-        li {
-            margin-bottom: 8px;
-        }
-
-        /* Blocchi di codice ed esempi */
         code {
-            background-color: #f4f4f4;
-            padding: 2px 5px;
+            background-color: #ecf0f1;
+            padding: 2px 6px;
             border-radius: 4px;
             font-family: 'Consolas', 'Monaco', monospace;
             color: #c0392b;
             font-size: 0.9em;
         }
 
-        pre {
-            background-color: #f8f9fa;
-            border: 1px solid #e1e4e8;
-            border-left: 5px solid #3498db;
-            padding: 15px;
-            overflow-x: auto;
-            border-radius: 4px;
-            white-space: pre-wrap; /* Permette al codice di andare a capo se necessario */
-        }
-
         /* Tabelle */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin: 25px 0;
+            font-size: 0.95em;
         }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #3498db; color: white; font-weight: 600; }
+        tr:hover { background-color: #f1f2f6; }
 
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
+        /* Badges */
+        .badge {
+            display: inline-block; padding: 4px 8px; border-radius: 4px;
+            color: white; font-weight: bold; font-size: 0.75em; text-transform: uppercase;
         }
-
-        th {
-            background-color: #f2f2f2;
-            color: #333;
-            font-weight: bold;
-        }
-
-        tr:hover {
-            background-color: #f9f9f9;
-        }
+        .js { background-color: #f1c40f; color: #333; }
+        .php { background-color: #8e44ad; }
+        .rest-get { background-color: #3498db; }
+        .rest-post { background-color: #27ae60; }
+        .folder { color: #e67e22; font-weight: bold; }
 
         /* Footer */
-        footer {
-            margin-top: 60px;
-            padding-top: 20px;
-            border-top: 1px solid #ccc;
-            text-align: center;
-            font-size: 0.8em;
-            color: #777;
-        }
-
-        /* Badge per metodi HTTP */
-        .method {
-            display: inline-block;
-            padding: 3px 6px;
-            border-radius: 4px;
-            color: white;
-            font-weight: bold;
-            font-size: 0.8em;
-        }
-        .get { background-color: #61affe; }
-        .post { background-color: #49cc90; }
+        footer { text-align: center; font-size: 0.85em; color: #7f8c8d; margin-top: 50px; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Progetto Musicson Lessons: Documentazione Tecnica</h1>
-        <p><strong>Oggetto:</strong> Relazione sull'Architettura RESTful e Implementazione Client-Server</p>
+        <h1>Progetto Musicson Lessons</h1>
+        <div class="subtitle">Documentazione Tecnica v2.0: Architettura RESTful e Modularità Client-Side</div>
     </header>
 
     <section>
-        <h2>1. Introduzione e Obiettivi</h2>
+        <h2>1. Filosofia Architetturale: Il Paradigma REST</h2>
         <p>
-            <strong>Musicson Lessons</strong> è una piattaforma web progettata per facilitare l'incontro tra domanda e offerta nel campo dell'educazione musicale. 
-            Il sistema permette agli studenti di ricercare professori in base allo strumento insegnato e di visualizzarne i profili.
+            L'intero progetto è stato sviluppato rifiutando l'approccio procedurale classico (RPC - Remote Procedure Call) in favore di una rigorosa architettura <strong>REST (Representational State Transfer)</strong>. 
+            L'obiettivo è disaccoppiare completamente il Client dal Server, rendendo il backend un puro distributore di risorse.
         </p>
+
+        <h3>1.1 Risorse vs Azioni (Nouns over Verbs)</h3>
         <p>
-            L'obiettivo tecnico primario del progetto è la realizzazione di un'architettura <strong>client-server disaccoppiata</strong>, 
-            basata rigorosamente sul paradigma <strong>REST</strong> (Representational State Transfer). 
-            L'implementazione evita l'utilizzo di framework "full-stack" precostituiti per dimostrare una comprensione profonda delle meccaniche native del protocollo HTTP, 
-            della gestione delle risorse e della sicurezza stateless.
+            In un sistema RPC o in molti script PHP amatoriali, gli URL descrivono <em>azioni</em> (es. <code>get_teachers.php</code>, <code>login_user.php</code>). 
+            In Musicson Lessons, seguiamo il principio dell'<strong>Interfaccia Uniforme</strong>: gli URL rappresentano <strong>Risorse</strong> (sostantivi). L'azione da compiere è determinata dal Verbo HTTP.
+        </p>
+        <ul>
+            <li>❌ <strong>RPC (Errato):</strong> <code>POST /api/searchTeachers.php</code> (L'URL contiene il verbo)</li>
+            <li>✅ <strong>REST (Musicson):</strong> <code>GET /api/teachers.php?strumento=Chitarra</code> (L'URL è la risorsa, il metodo è l'azione)</li>
+        </ul>
+
+        <h3>1.2 Statelessness (Assenza di Stato)</h3>
+        <p>
+            Il server non mantiene alcuna memoria della sessione utente tra due richieste (nessun uso di <code>$_SESSION</code> lato server per la logica API). 
+            Ogni singola richiesta HTTP proveniente dal Client contiene tutte le informazioni necessarie per essere elaborata, inclusi gli header di autenticazione (<strong>Basic Auth</strong>).
+            Questo garantisce scalabilità e testabilità indipendente.
         </p>
     </section>
 
     <section>
-        <h2>2. L'Architettura RESTful</h2>
+        <h2>2. Struttura del Progetto</h2>
         <p>
-            Il cuore del backend è stato progettato seguendo i vincoli architetturali definiti per i sistemi REST. 
-            Abbiamo evitato l'approccio classico "RPC" (Remote Procedure Call), tipico di molti script PHP procedurali (es. <code>get_teachers.php</code>), 
-            in favore di un sistema basato sulle <strong>Risorse</strong>.
+            L'applicazione rispetta una chiara separazione tra Frontend (statico + JS) e Backend (API PHP).
+        </p>
+        <pre>
+Musicson_Lessons/
+├── <span class="folder">css/</span>
+│   └── style.css          <span style="color:#777;"># CSS Strutturale (no stile inline)</span>
+├── <span class="folder">img/</span>
+│   └── <span class="folder">profile_pictures/</span>  <span style="color:#777;"># Immagini caricate dinamicamente</span>
+├── <span class="folder">js/</span>                    <span style="color:#777;"># Moduli ES6 (Frontend)</span>
+│   ├── api.js             <span style="color:#777;"># Data Layer (Fetch & Auth)</span>
+│   ├── ui.js              <span style="color:#777;"># View Layer (DOM Generation)</span>
+│   └── main.js            <span style="color:#777;"># Controller (Entry Point)</span>
+├── <span class="folder">php/</span>
+│   ├── <span class="folder">api/</span>               <span style="color:#777;"># Backend RESTful</span>
+│   │   ├── appointments.php
+│   │   ├── instruments.php
+│   │   ├── login.php
+│   │   └── teachers.php
+│   └── <span class="folder">config/</span>
+│       └── db.php         <span style="color:#777;"># Connessione Database (PDO)</span>
+└── index.html             <span style="color:#777;"># Single Page Application Shell</span></pre>
+    </section>
+
+    <section>
+        <h2>3. Frontend Modulare (ES Modules)</h2>
+        <p>
+            Il codice JavaScript è stato ingegnerizzato utilizzando i <strong>Moduli ES6</strong> (<code>type="module"</code>). 
+            Questo approccio supera il vecchio metodo "monolitico", garantendo incapsulamento e separazione delle responsabilità (SoC).
         </p>
 
-        <h3>2.1. Identificazione delle Risorse (URI)</h3>
+        <h3>3.1. api.js (Il Data Layer)</h3>
         <p>
-            In conformità con il principio dell'<strong>Interfaccia Uniforme</strong>, gli endpoint dell'API sono nominati utilizzando sostantivi (le risorse) e non verbi (le azioni).
+            Questo modulo è l'unico responsabile della comunicazione con il server. Non sa nulla dell'HTML o della pagina.
         </p>
-        
+        <ul>
+            <li><strong>Incapsulamento Fetch:</strong> Espone la funzione <code>getData(resource, params)</code>.</li>
+            <li><strong>Gestione Parametri:</strong> Utilizza l'oggetto nativo <code>URLSearchParams</code> per convertire oggetti JavaScript (es. <code>{strumento: 'Piano'}</code>) in query string sicure (es. <code>?strumento=Piano</code>).</li>
+            <li><strong>Middleware Auth:</strong> Inietta automaticamente l'header <code>Authorization: Basic ...</code> in ogni richiesta.</li>
+        </ul>
+
+        <h3>3.2. ui.js (Il View Layer)</h3>
+        <p>
+            Si occupa esclusivamente di generare l'HTML e manipolare il DOM.
+        </p>
+        <ul>
+            <li><strong>Pure Functions:</strong> Funzioni come <code>createTeacherCard()</code> e <code>createAppointmentCard()</code> prendono dati JSON in ingresso e restituiscono stringhe HTML template.</li>
+            <li><strong>Separazione CSS:</strong> Non applica stili inline, ma assegna classi CSS (es. <code>.teacher-card</code>) che vengono stilizzate in <code>style.css</code>.</li>
+            <li><strong>Logica di Rendering:</strong> Gestisce la visualizzazione condizionale (es. mostra il link al meeting solo se presente nel JSON).</li>
+        </ul>
+
+        <h3>3.3. main.js (Il Controller)</h3>
+        <p>
+            Il punto di ingresso dell'applicazione.
+        </p>
+        <ul>
+            <li><strong>Orchestrazione:</strong> Importa funzioni da <code>api.js</code> e <code>ui.js</code> e le coordina.</li>
+            <li><strong>Event Listeners:</strong> Gestisce il click sul bottone di login e il caricamento iniziale (<code>window.onload</code>).</li>
+            <li><strong>Esposizione Globale:</strong> Poiché i moduli sono "privati", espone esplicitamente funzioni come <code>window.logout</code> o <code>window.goHome</code> per renderle accessibili dagli attributi <code>onclick</code> dell'HTML.</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>4. Backend API e Database</h2>
+        <p>Il backend espone le risorse in formato JSON. Il Database MySQL gestisce le relazioni complesse.</p>
+
+        <h3>4.1. Endpoints Implementati</h3>
         <table>
             <thead>
                 <tr>
-                    <th>Risorsa</th>
-                    <th>Endpoint (URI)</th>
-                    <th>Descrizione</th>
+                    <th>Metodo</th>
+                    <th>Endpoint</th>
+                    <th>Funzione</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td><strong>Strumenti</strong></td>
-                    <td><code>/api/instruments.php</code></td>
-                    <td>Catalogo degli strumenti musicali disponibili.</td>
+                    <td><span class="badge rest-get">GET</span></td>
+                    <td><code>/instruments.php</code></td>
+                    <td>Restituisce l'elenco strumenti per l'autocomplete.</td>
                 </tr>
                 <tr>
-                    <td><strong>Professori</strong></td>
-                    <td><code>/api/teachers.php</code></td>
-                    <td>Collezione degli utenti con ruolo "insegnante".</td>
+                    <td><span class="badge rest-get">GET</span></td>
+                    <td><code>/teachers.php</code></td>
+                    <td>Lista professori. Supporta filtro query string: <code>?strumento=X</code>.</td>
                 </tr>
                 <tr>
-                    <td><strong>Sessione</strong></td>
-                    <td><code>/api/login.php</code></td>
-                    <td>Gestione dello stato di autenticazione.</td>
+                    <td><span class="badge rest-get">GET</span></td>
+                    <td><code>/appointments.php</code></td>
+                    <td>
+                        Restituisce le prenotazioni dell'utente autenticato.<br>
+                        <em>Logica:</em> Estrae l'utente dall'header Auth, esegue query JOIN su <code>appointments</code> e <code>users</code>.
+                    </td>
+                </tr>
+                <tr>
+                    <td><span class="badge rest-post">POST</span></td>
+                    <td><code>/login.php</code></td>
+                    <td>Verifica credenziali (hash password) e restituisce il profilo utente.</td>
                 </tr>
             </tbody>
         </table>
 
-        <h3>2.2. Utilizzo Semantico dei Metodi HTTP</h3>
-        <p>Il sistema sfrutta la semantica nativa del protocollo HTTP per definire le operazioni:</p>
+        <h3>4.2. Schema Database (MySQL)</h3>
+        <p>La persistenza è garantita da un database relazionale strutturato come segue:</p>
         <ul>
-            <li><span class="method get">GET</span> <strong>Idempotente e Safe:</strong> Utilizzato esclusivamente per il recupero di dati. Esempio: recuperare la lista dei professori.</li>
-            <li><span class="method post">POST</span> <strong>Non Idempotente:</strong> Utilizzato per l'invio di dati che modificano lo stato del server o creano risorse. Esempio: invio credenziali di login o (in futuro) creazione prenotazioni.</li>
-        </ul>
-
-        <h3>2.3. Filtering tramite Query Strings</h3>
-        <p>
-            Per mantenere gli URI puliti e identificativi della sola risorsa, le operazioni di filtro non generano nuovi endpoint, ma utilizzano i <strong>Query Parameters</strong>.
-        </p>
-        <ul>
-            <li>❌ <em>Approccio Errato (RPC):</em> <code>/api/get_teachers_by_piano.php</code></li>
-            <li>✅ <em>Approccio REST (Musicson):</em> <code>GET /api/teachers.php?strumento=Pianoforte</code></li>
-        </ul>
-        <p>Questo design permette di scalare le funzionalità di ricerca senza proliferazione di file nel backend.</p>
-
-        <h3>2.4. Statelessness (Assenza di Stato)</h3>
-        <p>
-            L'architettura è stata progettata per essere <strong>Stateless</strong>. Il server non mantiene lo stato della sessione dell'utente tra due richieste diverse tramite meccanismi lato server (come <code>$_SESSION</code>).
-            Ogni richiesta effettuata dal client (JavaScript) invia esplicitamente le credenziali di autenticazione nell'header <code>Authorization</code>.
-        </p>
-    </section>
-
-    <section>
-        <h2>3. Implementazione Tecnica</h2>
-
-        <h3>3.1. Backend (PHP Native)</h3>
-        <p>Il backend funge da puro fornitore di dati (API Provider).</p>
-        <ul>
-            <li><strong>Response Format:</strong> Tutti gli endpoint restituiscono dati esclusivamente in formato JSON (<code>Content-Type: application/json</code>).</li>
-            <li><strong>Sicurezza:</strong> Utilizzo di <em>Prepared Statements</em> (PDO) per prevenire SQL Injection, essenziale nelle query di filtraggio dinamico.</li>
-            <li><strong>Codici di Stato:</strong> Utilizzo corretto degli status HTTP (<code>200 OK</code>, <code>401 Unauthorized</code>, <code>405 Method Not Allowed</code>, <code>500 Internal Error</code>) invece di messaggi d'errore nel corpo della risposta.</li>
-        </ul>
-
-        <h3>3.2. Frontend (Vanilla JavaScript SPA)</h3>
-        <p>Il frontend è realizzato come una <strong>Single Page Application (SPA)</strong>.</p>
-        <ul>
-            <li><strong>Disaccoppiamento:</strong> Il file <code>index.html</code> fornisce solo lo scheletro semantico. Non contiene logica PHP.</li>
-            <li><strong>Data Binding Dinamico:</strong> Il file <code>app.js</code> agisce come controller client-side: interroga le API REST tramite <code>fetch</code>, riceve il JSON e manipola il DOM.</li>
-            <li><strong>UX Avanzata:</strong> Implementazione dell'<strong>Autocomplete nativo</strong> (<code>&lt;datalist&gt;</code>) per migliorare l'esperienza di ricerca.</li>
-        </ul>
-
-        <h3>3.3. Database (MySQL)</h3>
-        <p>Lo schema relazionale è normalizzato per gestire la relazione <em>molti-a-molti</em> tra Professori e Strumenti.</p>
-        <ul>
-            <li><code>users</code>: Contiene sia studenti che professori (discriminati dal campo <code>role</code>).</li>
-            <li><code>instruments</code>: Catalogo degli strumenti.</li>
-            <li><code>teacher_instruments</code>: Tabella ponte che associa N strumenti a N professori.</li>
-        </ul>
-    </section>
-
-    <section>
-        <h2>4. Flusso di Esecuzione (Caso d'Uso: Ricerca)</h2>
-        <ol>
-            <li><strong>Client:</strong> L'utente digita "Chitarra" nell'input di ricerca.</li>
-            <li><strong>JavaScript:</strong> La funzione <code>handleSearch</code> rileva l'input e invoca l'endpoint: <br><code>GET /api/teachers.php?strumento=Chitarra</code></li>
-            <li><strong>Server:</strong>
+            <li><strong>users</strong>: Tabella unica per Studenti e Professori (discriminati dal campo <code>role</code>).</li>
+            <li><strong>instruments</strong>: Catalogo strumenti.</li>
+            <li><strong>teacher_instruments</strong>: Tabella ponte (Many-to-Many) tra professori e strumenti.</li>
+            <li><strong>appointments</strong>: Nuova tabella per gestire le lezioni.
                 <ul>
-                    <li>Verifica l'header <code>Authorization</code> (Basic Auth).</li>
-                    <li>Rileva il parametro <code>$_GET['strumento']</code>.</li>
-                    <li>Esegue una query SQL complessa con <code>JOIN</code> e sottoquery per filtrare gli ID corretti.</li>
-                    <li>Restituisce un payload JSON con l'array dei professori.</li>
+                    <li><code>id</code> (PK), <code>student_id</code> (FK), <code>teacher_id</code> (FK)</li>
+                    <li><code>datetime</code>: Data e ora della lezione.</li>
+                    <li><code>meeting_link</code>: Link alla videochiamata.</li>
                 </ul>
             </li>
-            <li><strong>Client:</strong> Riceve il JSON e genera dinamicamente le "Card" HTML nel container dei risultati.</li>
-        </ol>
+        </ul>
     </section>
 
     <section>
-        <h2>5. Test e Accesso via CLI (cURL)</h2>
+        <h2>5. Accessibilità e Test (cURL)</h2>
         <p>
-            Grazie alla natura <strong>Stateless</strong> dell'architettura e all'uso di standard aperti (HTTP Basic Auth, JSON),
-            le risorse sono accessibili non solo tramite browser, ma anche attraverso strumenti da riga di comando o client HTTP esterni.
-            Questo dimostra il completo disaccoppiamento tra il Frontend e il Backend.
+            La natura <strong>Stateless</strong> dell'API permette di testare il backend indipendentemente dal frontend. 
+            È possibile simulare il comportamento dell'applicazione utilizzando strumenti da riga di comando.
         </p>
-        <p>
-            Di seguito un esempio di interrogazione diretta dell'API per recuperare la lista dei professori utilizzando <strong>cURL</strong> (versione Windows PowerShell):
-        </p>
+        <p><strong>Esempio reale:</strong> Recupero degli appuntamenti personali bypassando il browser.</p>
         
-        <pre><code>PS C:\Users\marco> curl.exe -u "marco@gmail.com:marco123" http://localhost:8080/php/api/teachers.php
+        <pre><code>PS C:\Users\marco> curl.exe -u "marco@gmail.com:marco123" http://localhost:8080/php/api/appointments.php
 
 [
   {
-    "id": 2, 
-    "nickname": "Pippo", 
-    "profile_picture": "pippo.png", 
-    "instruments": "Chitarra, Pianoforte"
-  },
-  {
-    "id": 3, 
-    "nickname": "Paul", 
-    "profile_picture": "paul.png", 
-    "instruments": "Basso, Pianoforte"
+    "id": 1, 
+    "datetime": "2026-01-29 17:59:19", 
+    "meeting_link": "https://meet.google/vhakeoah21", 
+    "teacher_name": "Pippo", 
+    "teacher_image": "pippo.png"
   }
 ]</code></pre>
-        
         <p>
-            Il server risponde correttamente con il payload JSON puro, confermando che l'API può essere consumata da qualsiasi tipo di client (Web, Mobile, Desktop o CLI).
+            Questo test conferma che l'autenticazione, la logica di filtering per utente e la generazione del JSON funzionano correttamente lato server, isolando eventuali problemi dell'interfaccia grafica.
         </p>
     </section>
 
-    <section>
-        <h2>6. Sviluppi Futuri</h2>
-        <p>In conformità con il design REST, il prossimo passo prevede l'implementazione della risorsa <strong>Prenotazioni</strong>:</p>
-        <ul>
-            <li><strong>URI:</strong> <code>/api/appointments.php</code></li>
-            <li><strong>Metodo:</strong> <span class="method post">POST</span></li>
-            <li><strong>Payload:</strong> Oggetto JSON contenente <code>teacher_id</code> e <code>datetime</code>.</li>
-            <li><strong>Response attesa:</strong> <code>201 Created</code>.</li>
-        </ul>
-    </section>
-
     <footer>
-        <p>Documentazione progetto Musicson Lessons Programmazione Web e Mobile.</p>
+        <p>Progetto Musicson Lessons - Programmazione Web e Mobile 2026</p>
     </footer>
 
 </body>
