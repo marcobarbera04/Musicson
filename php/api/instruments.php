@@ -1,5 +1,4 @@
 <?php
-// php/api/instruments.php
 header('Content-Type: application/json');
 require_once '../config/db.php';
 

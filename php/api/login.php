@@ -1,5 +1,4 @@
 <?php
-// php/api/login.php
 header('Content-Type: application/json');
 require_once '../config/db.php';
 
@@ -21,9 +20,7 @@ try {
     $stmt->execute([$user_email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // VERIFICA PASSWORD
     // Usiamo password_verify() che confronta la password in chiaro con l'hash nel DB.
-    // MAI salvare password in chiaro nel database!
     if ($user && password_verify($user_pass, $user['password'])) {
         // Login riuscito: restituiamo i dati utente (ma NON la password)
         echo json_encode([

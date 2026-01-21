@@ -1,14 +1,11 @@
 <?php
-// php/api/teachers.php
-
 // Impostiamo l'header per dire al client che stiamo inviando dati JSON, non HTML.
 header('Content-Type: application/json');
 
 // Inclusione del file di configurazione del database
 require_once '../config/db.php';
 
-// 1. CONTROLLO AUTENTICAZIONE (STATELESS)
-// In un'architettura REST, ogni richiesta deve autenticarsi da sola.
+// CONTROLLO AUTENTICAZIONE (STATELESS)
 // Verifichiamo se il client ha inviato le credenziali Basic Auth.
 if (!isset($_SERVER['PHP_AUTH_USER'])) {
     header('HTTP/1.0 401 Unauthorized');
@@ -19,16 +16,13 @@ if (!isset($_SERVER['PHP_AUTH_USER'])) {
 $db = getDbConnection();
 $method = $_SERVER['REQUEST_METHOD'];
 
-// 2. GESTIONE DELLA RICHIESTA GET
+// GESTIONE DELLA RICHIESTA GET
 if ($method === 'GET') {
     // Recuperiamo il parametro 'strumento' dalla query string (es. teachers.php?strumento=Chitarra)
     // Se non presente, sarà null (mostra tutti).
     $strumento = isset($_GET['strumento']) ? $_GET['strumento'] : null;
 
     try {
-        // COSTRUZIONE DINAMICA DELLA QUERY SQL
-        
-        // Parte 1: Selezione base.
         // GROUP_CONCAT serve per unire più righe (più strumenti) in una sola stringa per professore.
         $sql = "SELECT 
                     u.id, 
@@ -40,7 +34,7 @@ if ($method === 'GET') {
                 JOIN instruments i ON ti.instrument_id = i.id
                 WHERE u.role = 2"; // Filtriamo solo gli utenti che sono Professori
 
-        // Parte 2: Filtro Opzionale
+        // Filtro Opzionale
         // Se l'utente sta cercando uno strumento specifico, aggiungiamo una condizione.
         if ($strumento) {
             // Usiamo una sottoquery per trovare i prof che insegnano quello strumento,
@@ -53,7 +47,7 @@ if ($method === 'GET') {
                     )";
         }
 
-        // Parte 3: Raggruppamento (Necessario per GROUP_CONCAT)
+        // Raggruppamento (Necessario per GROUP_CONCAT)
         $sql .= " GROUP BY u.id";
         
         // PREPARAZIONE DELLA QUERY (SICUREZZA)

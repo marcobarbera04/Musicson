@@ -1,0 +1,99 @@
+
+/* STILE BASE */
+body {
+    font-family: sans-serif;
+    padding: 20px;
+}
+
+/* Padding generico per non avere input minuscoli (senza colori) */
+input, button, select {
+    padding: 10px;
+    font-size: 16px;
+    margin: 5px; /* Un po' di spazio tra gli elementi */
+}
+
+/* HEADER E NAVIGAZIONE (Solo Layout) */
+.header-controls {
+    display: flex;       /* Mette gli elementi in riga */
+    align-items: center; /* Li allinea verticalmente al centro */
+    gap: 10px;           /* Spazio tra i bottoni */
+    margin-bottom: 20px;
+}
+
+/* SEZIONE RICERCA (Solo Layout) */
+.search-section {
+    margin: 20px 0;
+    padding: 20px;
+    background: #f9f9f9; /* Lascio solo lo sfondo grigino per distinguere l'area */
+    text-align: center;
+    border-radius: 8px;
+}
+
+#instrument-input {
+    width: 300px;
+}
+
+/* GRIGLIA PROFESSORI (Solo Layout) */
+.teachers-grid {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.teacher-card {
+    border: 1px solid #ccc; /* Bordo essenziale per delimitare la card */
+    padding: 15px;
+    width: 250px;
+    text-align: center;
+}
+
+.teacher-img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%; /* Mantiene le foto rotonde */
+    object-fit: cover;  /* Evita che le foto si deformino */
+}
+
+/* LISTA APPUNTAMENTI (Solo Layout) */
+.appointments-list {
+    display: flex;
+    flex-direction: column; /* Lista verticale */
+    gap: 15px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.appointment-card {
+    border: 1px solid #ccc;
+    padding: 15px;
+    display: flex;          /* Flexbox per allineare Img - Testo - Link */
+    align-items: center;
+    gap: 20px;
+}
+
+.appointment-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.appointment-info {
+    flex-grow: 1; /* Occupa tutto lo spazio centrale */
+}
+
+.appointment-title {
+    margin: 0 0 5px 0;
+}
+
+.appointment-date {
+    margin: 0;
+    font-size: 14px;
+    color: #555;
+}
+
+/* Utility */
+.hidden {
+    display: none !important;
+}
