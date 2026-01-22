@@ -1,5 +1,5 @@
 import { fetchAuth, saveSession, clearSession, getSession } from './api.js';
-import { updateUI, showTeachers, showMyAppointments } from './ui.js';
+import { updateUI, showTeachers, showMyAppointments, openBookingModal, deleteBooking } from './ui.js';
 
 window.logout = function() {
     clearSession();
@@ -27,7 +27,11 @@ window.handleSearch = function() {
 window.showMyAppointments = showMyAppointments;
 
 window.bookLesson = function(id) {
-    alert("Funzionalità prenotazione per il prof " + id + " in arrivo!");
+    openBookingModal(id);
+}
+
+window.cancelLesson = function(id) {
+    deleteBooking(id);
 }
 
 // --- MAIN ---

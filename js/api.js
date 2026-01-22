@@ -33,6 +33,28 @@ export async function getData(resource, params = null) {
     return await response.json();
 }
 
+export async function postData(resource, data) {
+    const response = await fetchAuth(`php/api/${resource}.php`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    });
+    return await response.json();
+}
+
+export async function deleteData(resource, data) {
+    const response = await fetchAuth(`php/api/${resource}.php`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    });
+    return await response.json();
+}
+
 export function saveSession(credentials) {
     sessionStorage.setItem('user_auth', credentials);
 }
