@@ -1,7 +1,74 @@
-/* Questo file si occupa di generare l'HTML e aggiornare la pagina. Importa getData dal file api per avere i dati da disegnare */
-import { getData, postData, deleteData } from './api.js';
+/* * Gestisce la manipolazione del DOM, la generazione dell'HTML dinamico e la logica di presentazione.
+ */
 
-// Funzione per creare l'HTML di una card professore
+// SETUP GENERALE UI
+
+/**
+ * Gestisce lo stato globale dell'interfaccia (Loggato vs Non Loggato).
+ * Mostra/Nasconde i container principali e aggiorna l'header con i dati utente.
+ * * @param {boolean} isAuthenticated - True se il login è valido.
+ * @param {object} userData - Oggetto contenente nickname e ruolo dell'utente.
+ */
+function updateUI(isAuthenticated, userData = null) {
+    const loginBox = document.getElementById('login-container');
+    const contentBox = document.getElementById('content-container');
+    const statusBox = document.getElementById('user-status');
+
+    if (isAuthenticated) {
+        // Stato: UTENTE LOGGATO
+        loginBox.style.display = 'none';
+        contentBox.style.display = 'block';
+        
+        // Iniezione HTML per la barra di navigazione utente
+        statusBox.innerHTML = `
+            <div class="header-controls">
+                <span>Ciao <strong>${userData.nickname}</strong></span>
+                <button onclick="goHome()" class="btn-nav">Home</button>
+                <button onclick="showMyAppointments()" class="btn-nav">Mie Lezioni</button>
+                <button onclick="logout()" class="btn-logout">Esci</button>
+            </div>
+        `;
+        
+        // Inizializzazione dati
+        loadInstruments();
+        // goHome da main.js
+        goHome(); // Reset della vista alla home page
+    } else {
+        // Stato: UTENTE NON LOGGATO
+        loginBox.style.display = 'block';
+        contentBox.style.display = 'none';
+        statusBox.innerHTML = "";
+    }
+}
+
+/**
+ * Popola il datalist HTML con l'elenco degli strumenti disponibili.
+ * Effettua una chiamata GET /instruments.
+ */
+async function loadInstruments() {
+    const datalist = document.getElementById('instrument-list');
+    if (!datalist) return;
+    
+    // getData da api.js
+    const instruments = await getData('instruments');
+    
+    if (instruments) {
+        datalist.innerHTML = '';
+        instruments.forEach(ins => {
+            const opt = document.createElement('option');
+            opt.value = ins.name;
+            datalist.appendChild(opt);
+        });
+    }
+}
+
+// LOGICA PROFESSORI (Ricerca e Visualizzazione) 
+
+/**
+ * Genera la stringa HTML per una singola card Professore.
+ * @param {object} t - Oggetto professore (id, nickname, instruments, profile_picture).
+ * @returns {string} - Template HTML della card.
+ */
 function createTeacherCard(t) {
     const imgPath = `img/profile_pictures/${t.profile_picture || 'default.png'}`;
     return `
@@ -9,19 +76,148 @@ function createTeacherCard(t) {
             <img src="${imgPath}" class="teacher-img" alt="${t.nickname}">
             <h3>${t.nickname}</h3>
             <p>Strumenti: <strong>${t.instruments}</strong></p>
-            <button onclick="window.bookLesson(${t.id})" class="btn-book">Prenota Lezione</button>
+            <button onclick="bookLesson(${t.id})" class="btn-book">Prenota Lezione</button>
         </div>`;
 }
 
-// Funzione per creare l'HTML di una card appuntamento
+/**
+ * Recupera la lista dei professori filtrata per strumento e aggiorna la griglia nel DOM.
+ * @param {string} strumento - La stringa di ricerca.
+ */
+async function showTeachers(strumento) {
+    const listContainer = document.getElementById('teachers-list');
+    listContainer.innerHTML = '<p>Ricerca in corso...</p>';
+
+    // getData da api.js
+    const teachers = await getData('teachers', { strumento: strumento });
+
+    if (!teachers || teachers.length === 0) {
+        listContainer.innerHTML = '<p>Nessun professore trovato.</p>';
+        return;
+    }
+
+    // Costruzione dinamica della griglia
+    let html = '<div class="teachers-grid">';
+    teachers.forEach(t => html += createTeacherCard(t)); 
+    listContainer.innerHTML = html + '</div>';
+}
+
+// LOGICA PRENOTAZIONI LEZIONI (Popup/Modale Prenotazione)
+
+/**
+ * Calcola la data esatta (Oggetto Date) del prossimo giorno della settimana richiesto.
+ * @param {number} targetDayIndex - Indice del giorno (0=Domenica, 1=Lunedì...).
+ * @returns {Date} - Oggetto Date calcolato.
+ */
+function getNextDate(targetDayIndex) {
+    const date = new Date();
+    const currentDay = date.getDay(); 
+    
+    // Calcolo differenziale giorni
+    let daysToAdd = targetDayIndex - currentDay;
+    
+    // Se il giorno è oggi o passato, si sposta alla settimana successiva
+    if (daysToAdd <= 0) {
+        daysToAdd += 7;
+    }
+    
+    date.setDate(date.getDate() + daysToAdd);
+    return date;
+}
+
+/**
+ * Apre la modale di prenotazione, scarica gli orari disponibili del professore
+ * e genera i bottoni per gli slot temporali.
+ * @param {number} teacherId - ID del professore selezionato.
+ */
+async function openBookingModal(teacherId) {
+    const modal = document.getElementById('booking-modal');
+    const container = document.getElementById('slots-container');
+    
+    modal.style.display = 'flex'; // Renderizza la modale flexbox
+    container.innerHTML = 'Caricamento orari...';
+
+    // getData da api.js
+    const availability = await getData('availability', { teacher_id: teacherId });
+
+    if (!availability || availability.length === 0) {
+        container.innerHTML = '<p>Questo professore non ha orari disponibili inseriti.</p>';
+        return;
+    }
+
+    container.innerHTML = ''; 
+
+    // Iterazione sulle disponibilità per creare gli slot orari
+    availability.forEach(slot => {
+        const dateObj = getNextDate(parseInt(slot.weekday)); 
+        
+        // Formattazione data per UI e per DB
+        const dateStr = dateObj.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' });
+        const dateForDb = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD
+
+        let startHour = parseInt(slot.start_time.split(':')[0]);
+        let endHour = parseInt(slot.end_time.split(':')[0]);
+
+        // Ciclo per creare bottoni di 1 ora
+        for (let h = startHour; h < endHour; h++) {
+            const timeLabel = `${h}:00`;
+            const fullDateTime = `${dateForDb} ${h}:00:00`;
+            
+            const btn = document.createElement('button');
+            btn.className = 'slot-btn';
+            btn.innerHTML = `${dateStr} - ${timeLabel}`;
+            
+            // Binding evento click per conferma
+            btn.onclick = () => confirmBooking(teacherId, fullDateTime);
+            
+            container.appendChild(btn);
+        }
+    });
+}
+
+/**
+ * Invia la richiesta POST al server per salvare la prenotazione.
+ * Gestisce i messaggi di successo o errore (es. slot occupato).
+ */
+async function confirmBooking(teacherId, datetime) {
+    const dateReadable = new Date(datetime).toLocaleString('it-IT');
+    if(!confirm("Confermi la prenotazione per: " + dateReadable + "?")) return;
+
+    // postData da api.js
+    const result = await postData('appointments', {
+        teacher_id: teacherId,
+        datetime: datetime
+    });
+
+    if (result && result.message) {
+        // Successo: Chiude modale e notifica
+        alert("Prenotazione riuscita! Vai su 'Mie Lezioni'.");
+        document.getElementById('booking-modal').style.display = 'none';
+    } else if (result && result.error) {
+        // Errore Logico (es. Concorrenza): Notifica e ricarica slot
+        alert("Errore: " + result.error);
+        openBookingModal(teacherId); 
+    } else {
+        // Errore Generico
+        alert("Errore durante la prenotazione. Riprova.");
+    }
+}
+
+// LOGICA PRENOTAZIONE LEZIONI (Lista e Cancellazione)
+
+/**
+ * Genera la stringa HTML per una singola card Appuntamento.
+ * @param {object} app - Dati appuntamento (inclusi partner_name e partner_image dal JOIN).
+ * @returns {string} - Template HTML.
+ */
 function createAppointmentCard(app) {
     const dateObj = new Date(app.datetime);
     const dateStr = dateObj.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     const timeStr = dateObj.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
     
-    // Usiamo 'partner_image' e 'partner_name' che arrivano dal backend
     const imgPath = `img/profile_pictures/${app.partner_image || 'default.png'}`;
     
+    // Generazione condizionale del link al meeting
     const linkHtml = app.meeting_link 
         ? `<a href="${app.meeting_link}" target="_blank" class="appointment-link">Accedi al Meeting</a>` 
         : `<span class="appointment-no-link">Link non ancora disponibile</span>`;
@@ -35,8 +231,7 @@ function createAppointmentCard(app) {
                     Data: ${dateStr} <br> 
                     Ore: <strong>${timeStr}</strong>
                 </p>
-                
-                <button onclick="window.cancelLesson(${app.id})" style="margin-top: 10px;">
+                <button onclick="cancelLesson(${app.id})" style="margin-top: 10px;">
                     Cancella Lezione
                 </button>
             </div>
@@ -46,68 +241,20 @@ function createAppointmentCard(app) {
         </div>`;
 }
 
-export function updateUI(isAuthenticated, userData = null) {
-    const loginBox = document.getElementById('login-container');
-    const contentBox = document.getElementById('content-container');
-    const statusBox = document.getElementById('user-status');
-
-    if (isAuthenticated) {
-        loginBox.style.display = 'none';
-        contentBox.style.display = 'block';
-        statusBox.innerHTML = `
-            <div class="header-controls">
-                <span>Ciao <strong>${userData.nickname}</strong></span>
-                <button onclick="window.goHome()" class="btn-nav">Home</button>
-                <button onclick="window.showMyAppointments()" class="btn-nav">Mie Lezioni</button>
-                <button onclick="window.logout()" class="btn-logout">Esci</button>
-            </div>
-        `;
-        loadInstruments();
-        window.goHome(); // Usiamo window.goHome perché definita globalmente nel main
-    } else {
-        loginBox.style.display = 'block';
-        contentBox.style.display = 'none';
-        statusBox.innerHTML = "";
-    }
-}
-
-export async function loadInstruments() {
-    const datalist = document.getElementById('instrument-list');
-    if (!datalist) return;
-    const instruments = await getData('instruments');
-    if (instruments) {
-        datalist.innerHTML = '';
-        instruments.forEach(ins => {
-            const opt = document.createElement('option');
-            opt.value = ins.name;
-            datalist.appendChild(opt);
-        });
-    }
-}
-
-export async function showTeachers(strumento) {
-    const listContainer = document.getElementById('teachers-list');
-    listContainer.innerHTML = '<p>Ricerca in corso...</p>';
-
-    // Chiediamo i dati passando l'oggetto dei parametri
-    const teachers = await getData('teachers', { strumento: strumento });
-
-    if (!teachers || teachers.length === 0) {
-        listContainer.innerHTML = '<p>Nessun professore trovato.</p>';
-        return;
-    }
-
-    let html = '<div class="teachers-grid">';
-    teachers.forEach(t => html += createTeacherCard(t)); 
-    listContainer.innerHTML = html + '</div>';
-}
-
-export async function showMyAppointments() {
+/**
+ * Recupera gli appuntamenti dell'utente e aggiorna la vista principale.
+ * Nasconde la sezione di ricerca per mostrare la lista lezioni.
+ */
+async function showMyAppointments() {
     const container = document.getElementById('teachers-list');
     const searchSection = document.querySelector('.search-section');
+    
+    // Nascondiamo l'input di ricerca strumenti
     if(searchSection) searchSection.style.display = 'none';
     
     container.innerHTML = '<p>Caricamento lezioni...</p>';
+    
+    // getData da api.js
     const appointments = await getData('appointments');
 
     if (!appointments || appointments.length === 0) {
@@ -120,116 +267,20 @@ export async function showMyAppointments() {
     container.innerHTML = html + '</div>';
 }
 
-// Funzione per calcolare la data del prossimo giorno della settimana specificato
-function getNextDate(targetDayIndex) {
-    const date = new Date();
-    const currentDay = date.getDay(); // 0=Domenica, 1=Lunedì...
-    
-    // Calcoliamo quanti giorni mancano
-    // Esempio: Se oggi è Martedì (2) e cerco Venerdì (5) -> 5 - 2 = 3 giorni dopo
-    let daysToAdd = targetDayIndex - currentDay;
-    
-    // Se il giorno è già passato in questa settimana (o è oggi), andiamo alla prossima
-    if (daysToAdd <= 0) {
-        daysToAdd += 7;
-    }
-    
-    date.setDate(date.getDate() + daysToAdd);
-    return date;
-}
-
-// Funzione che apre la modale e calcola gli slot
-export async function openBookingModal(teacherId) {
-    const modal = document.getElementById('booking-modal');
-    const container = document.getElementById('slots-container');
-    
-    modal.style.display = 'flex'; // Mostra la modale
-    container.innerHTML = 'Caricamento orari...';
-
-    // Scarichiamo la disponibilità del prof
-    const availability = await getData('availability', { teacher_id: teacherId });
-
-    if (!availability || availability.length === 0) {
-        container.innerHTML = '<p>Questo professore non ha orari disponibili inseriti.</p>';
-        return;
-    }
-
-    container.innerHTML = ''; // Pulisce
-
-    // Generiamo gli slot orari per la prossima settimana
-    availability.forEach(slot => {
-        // Il db utilizza lunedi = 1 cosi' come js
-        const dateObj = getNextDate(parseInt(slot.weekday)); 
-        
-        // Formattiamo la data per l'utente (es. "Lun 25 Gen")
-        const dateStr = dateObj.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' });
-        
-        // Formattiamo la data per il DB (YYYY-MM-DD)
-        const dateForDb = dateObj.toISOString().split('T')[0];
-
-        // Creiamo slot di 1 ora nell'intervallo start-end
-        let startHour = parseInt(slot.start_time.split(':')[0]);
-        let endHour = parseInt(slot.end_time.split(':')[0]);
-
-        for (let h = startHour; h < endHour; h++) {
-            const timeLabel = `${h}:00`;
-            const fullDateTime = `${dateForDb} ${h}:00:00`; // Formato SQL
-            
-            const btn = document.createElement('button');
-            btn.className = 'slot-btn';
-            btn.innerHTML = `${dateStr} - ${timeLabel}`;
-            
-            // Al click, confermiamo la prenotazione
-            btn.onclick = () => confirmBooking(teacherId, fullDateTime);
-            
-            container.appendChild(btn);
-        }
-    });
-}
-
-// Funzione per inviare la prenotazione
-async function confirmBooking(teacherId, datetime) {
-    // Formattiamo la data per renderla leggibile nel confirm
-    const dateReadable = new Date(datetime).toLocaleString('it-IT');
-    if(!confirm("Confermi la prenotazione per: " + dateReadable + "?")) return;
-
-    // Nel file api.js postData restituisce response.json()
-    // Se il server manda { "error": "..." }, lo troveremo qui
-    const result = await postData('appointments', {
-        teacher_id: teacherId,
-        datetime: datetime
-    });
-
-    if (result && result.message) {
-        // SUCCESSO
-        alert("Prenotazione riuscita! Vai su 'Mie Lezioni'.");
-        document.getElementById('booking-modal').style.display = 'none';
-        
-        // Ricarichiamo gli slot per nascondere quello appena preso
-        openBookingModal(teacherId); 
-
-    } else if (result && result.error) {
-        // ERRORE SPECIFICO (es. Slot occupato)
-        alert("Errore: " + result.error);
-        
-        // Ricaricare la modale per mostrare la situazione aggiornata
-        document.getElementById('slots-container').innerHTML = ''; // Pulisce per sicurezza
-        openBookingModal(teacherId); // Ricarica gli slot
-    } else {
-        // ERRORE GENERICO
-        alert("Errore durante la prenotazione. Riprova.");
-    }
-}
-
-export async function deleteBooking(appointmentId) {
+/**
+ * Invia richiesta DELETE per rimuovere un appuntamento.
+ * Richiede conferma utente e aggiorna la lista in caso di successo.
+ */
+async function deleteBooking(appointmentId) {
     if(!confirm("Sei sicuro di voler cancellare questa lezione? L'operazione è irreversibile.")) return;
 
+    // deleteData da api.js
     const result = await deleteData('appointments', { id: appointmentId });
 
     if (result && result.message) {
         alert("Lezione cancellata.");
-        // Ricarichiamo la lista per far sparire la card
-        window.showMyAppointments();
+        // Ricaricamento della lista per riflettere le modifiche
+        showMyAppointments();
     } else {
         alert("Errore: " + (result.error || "Impossibile cancellare"));
     }
