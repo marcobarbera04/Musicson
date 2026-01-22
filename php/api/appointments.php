@@ -15,24 +15,41 @@ $currentUserEmail = $_SERVER['PHP_AUTH_USER'];
 
 if ($method === 'GET') {
     try {
-        // Troviamo l'ID dell'utente loggato
-        $stmtUser = $db->prepare("SELECT id FROM users WHERE email = ?");
+        // Trovare ID e RUOLO dell'utente loggato
+        $stmtUser = $db->prepare("SELECT id, role FROM users WHERE email = ?");
         $stmtUser->execute([$currentUserEmail]);
-        $userId = $stmtUser->fetchColumn();
+        $user = $stmtUser->fetch(PDO::FETCH_ASSOC);
 
-        if (!$userId) throw new Exception("Utente non trovato");
+        if (!$user) throw new Exception("Utente non trovato");
 
-        // Query aggiornata con i tuoi campi REALI (datetime, meeting_link)
-        $sql = "SELECT 
-                    a.id, 
-                    a.datetime,  
-                    a.meeting_link, 
-                    t.nickname as teacher_name, 
-                    t.profile_picture as teacher_image
-                FROM appointments a
-                JOIN users t ON a.teacher_id = t.id
-                WHERE a.student_id = :my_id
-                ORDER BY a.datetime ASC"; // Ordiniamo per data crescente
+        $userId = $user['id'];
+        $role = $user['role']; // 1 = student, 2 = teacher
+        
+        if ($role == 2) { 
+            // Cercare dove sono il teacher_id e prendo i dati dello STUDENT
+            $sql = "SELECT 
+                        a.id, 
+                        a.datetime,  
+                        a.meeting_link, 
+                        u.nickname as partner_name,      -- nome Studente
+                        u.profile_picture as partner_image -- foto Studente
+                    FROM appointments a
+                    JOIN users u ON a.student_id = u.id
+                    WHERE a.teacher_id = :my_id
+                    ORDER BY a.datetime ASC";
+        } else {
+            // Cerco dove sono lo student_id e prendo i dati del TEACHER
+            $sql = "SELECT 
+                        a.id, 
+                        a.datetime,  
+                        a.meeting_link, 
+                        u.nickname as partner_name,      -- nome Professore
+                        u.profile_picture as partner_image -- foto Professore
+                    FROM appointments a
+                    JOIN users u ON a.teacher_id = u.id
+                    WHERE a.student_id = :my_id
+                    ORDER BY a.datetime ASC";
+        }
         
         $stmt = $db->prepare($sql);
         $stmt->bindParam(':my_id', $userId);

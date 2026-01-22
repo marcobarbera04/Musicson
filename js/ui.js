@@ -18,7 +18,9 @@ function createAppointmentCard(app) {
     const dateObj = new Date(app.datetime);
     const dateStr = dateObj.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     const timeStr = dateObj.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-    const imgPath = `img/profile_pictures/${app.teacher_image || 'default.png'}?v=${new Date().getTime()}`;
+    
+    // NOTA: Ora usiamo 'partner_image' e 'partner_name' che arrivano dal backend aggiornato
+    const imgPath = `img/profile_pictures/${app.partner_image || 'default.png'}?v=${new Date().getTime()}`;
     
     const linkHtml = app.meeting_link 
         ? `<a href="${app.meeting_link}" target="_blank" class="appointment-link">Accedi al Meeting</a>` 
@@ -26,12 +28,17 @@ function createAppointmentCard(app) {
 
     return `
         <div class="appointment-card">
-            <img src="${imgPath}" class="appointment-img" alt="${app.teacher_name}">
+            <img src="${imgPath}" class="appointment-img" alt="${app.partner_name}">
             <div class="appointment-info">
-                <h4 class="appointment-title">Lezione con ${app.teacher_name}</h4>
-                <p class="appointment-date">Data: ${dateStr} <br> Ore: <strong>${timeStr}</strong></p>
+                <h4 class="appointment-title">Lezione con ${app.partner_name}</h4>
+                <p class="appointment-date">
+                    Data: ${dateStr} <br> 
+                    Ore: <strong>${timeStr}</strong>
+                </p>
             </div>
-            <div class="appointment-link-container">${linkHtml}</div>
+            <div class="appointment-link-container">
+                ${linkHtml}
+            </div>
         </div>`;
 }
 
