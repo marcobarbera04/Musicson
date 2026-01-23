@@ -11,13 +11,19 @@
  * @returns {Promise<Response>} - Oggetto Response nativo.
  */
 async function fetchAuth(url, options = {}) {
-    // getSession from api.js (internal use)
     const auth = sessionStorage.getItem('user_auth');
     if (auth) {
         // Spread operator (...) per mantenere header esistenti e aggiungere Authorization
         options.headers = { ...options.headers, 'Authorization': `Basic ${auth}` };
     }
     return fetch(url, options);
+}
+
+// Procedura di Logout
+function logout() {
+    sessionStorage.removeItem('user_auth');     // pulizia credenziali sessionStorage
+    sessionStorage.removeItem('user_role');     // pulizia ruolo sessionStorage
+    location.reload();                          // ricarica pagina per resettare lo stato dell'applicazione
 }
 
 // METODI HTTP (CRUD)
@@ -38,7 +44,6 @@ async function getData(resource, params = null) {
         url += `?${queryString}`;
     }
 
-    // fetchAuth da api.js
     const response = await fetchAuth(url);
     
     // Gestione errore 401 (Unauthorized): Sessione scaduta o invalida
@@ -59,7 +64,6 @@ async function getData(resource, params = null) {
  * @returns {Promise<object>} - Il JSON di risposta del server.
  */
 async function postData(resource, data) {
-    // fetchAuth da api.js
     const response = await fetchAuth(`php/api/${resource}.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -75,28 +79,10 @@ async function postData(resource, data) {
  * @returns {Promise<object>} - Il JSON di risposta.
  */
 async function deleteData(resource, data) {
-    // fetchAuth da api.js
     const response = await fetchAuth(`php/api/${resource}.php`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     });
     return await response.json();
-}
-
-// GESTIONE SESSION (lato client) 
-
-/** Salva la stringa base64 delle credenziali nel Session Storage del browser. */
-function saveSession(credentials) {
-    sessionStorage.setItem('user_auth', credentials);
-}
-
-/** Rimuove le credenziali effettuando il logout locale. */
-function clearSession() {
-    sessionStorage.removeItem('user_auth');
-}
-
-/** Recupera le credenziali correnti e ritorna null se l'utente non è loggato. */
-function getSession() {
-    return sessionStorage.getItem('user_auth');
 }

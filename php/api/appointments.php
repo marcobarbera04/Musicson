@@ -66,47 +66,43 @@ try {
 
     } 
     elseif ($method === 'POST') {
+        // Lettura dati in arrivo
         $input = json_decode(file_get_contents('php://input'), true);
 
+        // Validazione di base
         if (!isset($input['teacher_id']) || !isset($input['datetime'])) {
-            throw new Exception("Dati mancanti (teacher_id o datetime)");
-        }
-
-        // CONTROLLO DISPONIBILITÀ (evitare piu' prenotazione nello stesso slot)
-        // Verifichiamo se esiste già una lezione per QUESTO professore in QUESTA data/ora
-        $checkSql = "SELECT COUNT(*) FROM appointments 
-                     WHERE teacher_id = :teacher_id AND datetime = :datetime";
-        
-        $stmtCheck = $db->prepare($checkSql);
-        $stmtCheck->execute([
-            ':teacher_id' => $input['teacher_id'],
-            ':datetime'   => $input['datetime']
-        ]);
-
-        if ($stmtCheck->fetchColumn() > 0) {
-            // Se il conteggio è > 0, lo slot è già preso!
-            header('HTTP/1.1 409 Conflict'); // 409 è il codice HTTP specifico per i conflitti
-            echo json_encode(["error" => "Questo orario è già stato prenotato da un altro studente."]);
+            header('HTTP/1.1 400 Bad Request');
+            echo json_encode(["error" => "Dati mancanti (teacher_id o datetime)"]);
             exit;
         }
-        // Slot libero
 
-        // Generazione link finto
-        $meetingLink = "https://meet.google.com/" . substr(md5(uniqid()), 0, 10);
+        try {
+            $meetingLink = "https://meet.google.com/" . substr(md5(uniqid()), 0, 10);
 
-        $sql = "INSERT INTO appointments (student_id, teacher_id, datetime, meeting_link) 
-                VALUES (:student_id, :teacher_id, :datetime, :meeting_link)";
-        
-        $stmt = $db->prepare($sql);
-        $stmt->execute([
-            ':student_id' => $userId,
-            ':teacher_id' => $input['teacher_id'],
-            ':datetime'   => $input['datetime'],
-            ':meeting_link' => $meetingLink
-        ]);
+            $sql = "INSERT INTO appointments (student_id, teacher_id, datetime, meeting_link) 
+                    VALUES (:student_id, :teacher_id, :datetime, :meeting_link)";
+            
+            $stmt = $db->prepare($sql);
+            $stmt->execute([
+                ':student_id' => $userId,
+                ':teacher_id' => $input['teacher_id'],
+                ':datetime'   => $input['datetime'],
+                ':meeting_link' => $meetingLink
+            ]);
 
-        http_response_code(201); 
-        echo json_encode(["message" => "Prenotazione confermata!", "link" => $meetingLink]);
+            http_response_code(201); 
+            echo json_encode(["message" => "Prenotazione confermata!", "link" => $meetingLink]);
+
+} catch (PDOException $e) {
+    // Codice 23000 è la violazione di vincolo (Duplicate entry) in MySQL
+    if ($e->getCode() == 23000) {
+        header('HTTP/1.1 409 Conflict');
+        echo json_encode(["error" => "Slot già prenotato!"]);
+    } else {
+        header('HTTP/1.1 500 Internal Server Error');
+        echo json_encode(["error" => "Errore DB: " . $e->getMessage()]);
+    }
+}
 
     } elseif ($method === 'DELETE') {
         // Leggiamo il body della richiesta

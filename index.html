@@ -12,37 +12,62 @@
     </header>
 
     <main id="app">
-        <div id="login-container" style="display:none;">
+        <div id="login-container" class="hidden">
             <h2>Accedi</h2>
             <input type="email" id="login-email" placeholder="Email">
             <input type="password" id="login-password" placeholder="Password">
             <button id="login-button">Entra</button>
-            <p id="login-error" style="color:red;"></p>
+            <p id="login-error" class="error-msg"></p>
         </div>
 
-        <div id="content-container" style="display:none;">
+        <div id="content-container" class="hidden">
             
             <div class="search-section">
                 <h3>Cosa vuoi imparare oggi?</h3>
-                
-                <input type="text" id="instrument-input" list="instrument-list" placeholder="Scrivi uno strumento (es. Chitarra)..." style="padding: 10px; width: 300px;">
-                
-                <datalist id="instrument-list">
-                    </datalist>
-
+                <input type="text" id="instrument-input" list="instrument-list" placeholder="Scrivi uno strumento (es. Chitarra)...">
+                <datalist id="instrument-list"></datalist>
                 <button onclick="handleSearch()">Cerca Maestri</button>
             </div>
-
             
             <div id="teachers-list"></div>
         </div>
     </main>
 
+    <div id="profile-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="document.getElementById('profile-modal').style.display='none'">&times;</span>
+            
+            <h3>Il mio Profilo</h3>
+            
+            <div class="profile-info">
+                <img src="img/profile_pictures/default.png" alt="Profilo" class="profile-avatar-static">
+                <p>Immagine di profilo</p>
+            </div>
+
+            <div id="teacher-availability-section" class="teacher-section hidden">
+                <h4>Gestione Disponibilità</h4>
+                
+                <div class="add-slot-form">
+                    <select id="new-slot-day">
+                        <option value="1">Lunedì</option>
+                        <option value="2">Martedì</option>
+                        <option value="3">Mercoledì</option>
+                        <option value="4">Giovedì</option>
+                        <option value="5">Venerdì</option>
+                    </select>
+                    <input type="time" id="new-slot-start" step="3600"> <button onclick="handleAddSlot()" class="btn-action">Aggiungi Slot</button>
+                </div>
+
+                <div id="my-slots-list" class="slots-list-manage"></div>
+            </div>
+        </div>
+    </div>
+
     <div id="booking-modal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('booking-modal').style.display='none'">&times;</span>
             <h3>Prenota una Lezione</h3>
-            <p>Seleziona un orario disponibile per la prossima settimana:</p>
+            <p>Seleziona un orario disponibile:</p>
             <div id="slots-container" class="slots-container">
                 </div>
         </div>

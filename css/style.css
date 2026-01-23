@@ -1,30 +1,53 @@
+/* STILI BASE */
 
-/* STILE BASE */
 body {
     font-family: sans-serif;
     padding: 20px;
+    background-color: #ffffff;
 }
 
-/* Padding generico per non avere input minuscoli (senza colori) */
-input, button, select {
+.hidden {
+    display: none;
+}
+
+/* INPUT E SELECT (Stile base) */
+input, select {
     padding: 10px;
     font-size: 16px;
-    margin: 5px; /* Un po' di spazio tra gli elementi */
+    margin: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
 }
 
-/* HEADER E NAVIGAZIONE (Solo Layout) */
+/* BOTTONI UNIFICATI (Unica "classe" per tutti) */
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    margin: 5px;
+    cursor: pointer;
+    background-color: #2196f3; /* Colore Hardcoded */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #1976d2; /* Colore Hardcoded (più scuro per hover) */
+}
+
+/* HEADER E LAYOUT */
 .header-controls {
-    display: flex;       /* Mette gli elementi in riga */
-    align-items: center; /* Li allinea verticalmente al centro */
-    gap: 10px;           /* Spazio tra i bottoni */
+    display: flex;
+    align-items: center;
+    gap: 10px;
     margin-bottom: 20px;
 }
 
-/* SEZIONE RICERCA (Solo Layout) */
 .search-section {
     margin: 20px 0;
     padding: 20px;
-    background: #f9f9f9; /* Lascio solo lo sfondo grigino per distinguere l'area */
+    background: #f9f9f9;
     text-align: center;
     border-radius: 8px;
 }
@@ -33,7 +56,7 @@ input, button, select {
     width: 300px;
 }
 
-/* GRIGLIA PROFESSORI (Solo Layout) */
+/* GRIGLIE E CARD */
 .teachers-grid {
     display: flex;
     gap: 20px;
@@ -42,23 +65,25 @@ input, button, select {
 }
 
 .teacher-card {
-    border: 1px solid #ccc; /* Bordo essenziale per delimitare la card */
+    border: 1px solid #ccc;
     padding: 15px;
     width: 250px;
     text-align: center;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .teacher-img {
     width: 100px;
     height: 100px;
-    border-radius: 50%; /* Mantiene le foto rotonde */
-    object-fit: cover;  /* Evita che le foto si deformino */
+    border-radius: 50%;
+    object-fit: cover;
 }
 
-/* LISTA APPUNTAMENTI (Solo Layout) */
+/* LISTA APPUNTAMENTI */
 .appointments-list {
     display: flex;
-    flex-direction: column; /* Lista verticale */
+    flex-direction: column;
     gap: 15px;
     max-width: 1000px;
     margin: 0 auto;
@@ -67,9 +92,11 @@ input, button, select {
 .appointment-card {
     border: 1px solid #ccc;
     padding: 15px;
-    display: flex;          /* Flexbox per allineare Img - Testo - Link */
+    display: flex;
     align-items: center;
     gap: 20px;
+    border-radius: 8px;
+    background-color: #fff;
 }
 
 .appointment-img {
@@ -80,27 +107,20 @@ input, button, select {
 }
 
 .appointment-info {
-    flex-grow: 1; /* Occupa tutto lo spazio centrale */
+    flex-grow: 1;
 }
 
-.appointment-title {
-    margin: 0 0 5px 0;
-}
+.appointment-title { margin: 0 0 5px 0; }
+.appointment-date { margin: 0; font-size: 14px; color: #555; }
 
-.appointment-date {
-    margin: 0;
-    font-size: 14px;
-    color: #555;
-}
-
-/* Stile per la Modale (Popup) */
+/* MODALI */
 .modal {
-    display: none; /* Nascosto di default */
+    display: none;
     position: fixed; 
     z-index: 1000; 
     left: 0; top: 0;
     width: 100%; height: 100%; 
-    background-color: rgba(0,0,0,0.5); /* Sfondo scuro semitrasparente */
+    background-color: rgba(0,0,0,0.5); /* Sfondo semitrasparente hardcoded */
     justify-content: center;
     align-items: center;
 }
@@ -121,8 +141,10 @@ input, button, select {
     font-size: 24px;
     cursor: pointer;
     font-weight: bold;
+    color: #333;
 }
 
+/* SLOT E PRENOTAZIONI */
 .slots-container {
     display: flex;
     flex-wrap: wrap;
@@ -131,11 +153,44 @@ input, button, select {
     margin-top: 20px;
 }
 
-.slot-btn {
-    background-color: #e3f2fd;
-    border: 1px solid #2196f3;
-    padding: 10px;
-    border-radius: 5px;
-    cursor: pointer;
+/* PROFILO E GESTIONE */
+.profile-avatar-static {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+    border: 2px solid #2196f3; /* Colore Hardcoded */
+    object-fit: cover;
 }
-.slot-btn:hover { background-color: #bbdefb; }
+
+.add-slot-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.slots-list-manage {
+    text-align: left;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 10px;
+}
+
+.slot-manage-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+/* MESSAGGI DI ERRORE */
+.error-msg {
+    color: #d9534f; /* Rosso hardcoded solo per il testo errore */
+    margin-top: 10px;
+}
