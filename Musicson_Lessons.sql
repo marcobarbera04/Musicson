@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: mysql_proj_web
--- Creato il: Gen 19, 2026 alle 16:35
+-- Creato il: Gen 24, 2026 alle 22:00
 -- Versione del server: 9.5.0
 -- Versione PHP: 8.3.26
 
@@ -45,8 +45,7 @@ CREATE TABLE `availability` (
   `id` int NOT NULL,
   `teacher_id` int NOT NULL,
   `weekday` int NOT NULL,
-  `start_time` time NOT NULL,
-  `end_time` time NOT NULL
+  `start_time` time NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -93,7 +92,8 @@ CREATE TABLE `users` (
   `email` varchar(255) NOT NULL,
   `nickname` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `role` int NOT NULL
+  `role` int NOT NULL,
+  `profile_picture` varchar(255) NOT NULL DEFAULT 'default.png'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
@@ -104,14 +104,16 @@ CREATE TABLE `users` (
 -- Indici per le tabelle `appointments`
 --
 ALTER TABLE `appointments`
-  ADD KEY `student_id` (`student_id`),
-  ADD KEY `teacher_id` (`teacher_id`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_booking` (`teacher_id`,`datetime`),
+  ADD KEY `student_id` (`student_id`);
 
 --
 -- Indici per le tabelle `availability`
 --
 ALTER TABLE `availability`
-  ADD KEY `teacher_id` (`teacher_id`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_slot` (`teacher_id`,`weekday`,`start_time`);
 
 --
 -- Indici per le tabelle `instruments`
@@ -143,6 +145,18 @@ ALTER TABLE `users`
 --
 -- AUTO_INCREMENT per le tabelle scaricate
 --
+
+--
+-- AUTO_INCREMENT per la tabella `appointments`
+--
+ALTER TABLE `appointments`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT per la tabella `availability`
+--
+ALTER TABLE `availability`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT per la tabella `instruments`
