@@ -23,9 +23,9 @@ function updateUI(isAuthenticated, userData = null) {
         statusBox.innerHTML = `
             <div class="header-controls">
                 <span>Ciao <strong>${userData.nickname}</strong></span>
-                <button onclick="goHome()" class="btn-nav">Home</button>
-                <button onclick="showMyAppointments()" class="btn-nav">Mie Lezioni</button>
-                <button onclick="openProfileModal()" class="btn-nav">Profilo</button> 
+                <button onclick="goHome()">Home</button>
+                <button onclick="showMyAppointments()">Mie Lezioni</button>
+                <button onclick="openProfileModal()">Profilo</button> 
                 <button onclick="logout()" class="btn-logout">Esci</button>
             </div>
         `;
@@ -116,7 +116,7 @@ function createTeacherCard(t) {
 
     // se l'utente e' studente il bottone prenota lezione esistera'
     if(userRole == '1'){
-        bookingButton = `<button onclick="openBookingModal(${t.id})" class="btn-book">Prenota Lezione</button>`
+        bookingButton = `<button onclick="openBookingModal(${t.id})">Prenota Lezione</button>`
     }
 
     return `
@@ -175,7 +175,6 @@ async function openBookingModal(teacherId) {
 
         // creazione bottone dello slot da prenotare
         const btn = document.createElement('button');
-        btn.className = 'slot-btn';
         // testo in formato Lun 23 Gen - 15:00
         const dateReadable = dateObj.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' });
         btn.innerHTML = `${dateReadable} - ${timeLabel}`;
@@ -273,8 +272,8 @@ function createAppointmentCard(app) {
     
     // generazione condizionale del link al meeting (se app.meeting_link esiste mostro quello senno' dico ancora non disponibile)
     const linkHtml = app.meeting_link 
-        ? `<a href="${app.meeting_link}" target="_blank" class="appointment-link">Accedi al Meeting</a>` 
-        : `<span class="appointment-no-link">Link non ancora disponibile</span>`;
+        ? `<a href="${app.meeting_link}" target="_blank">Accedi al Meeting</a>` 
+        : `<span>Link non ancora disponibile</span>`;
 
     return `
         <div class="appointment-card">
@@ -285,7 +284,7 @@ function createAppointmentCard(app) {
                     Data: ${dateStr} <br> 
                     Ore: <strong>${timeStr}</strong>
                 </p>
-                <button onclick="deleteBooking(${app.id})" class="btn-cancel">
+                <button onclick="deleteBooking(${app.id})">
                     Cancella Lezione
                 </button>
             </div>
@@ -367,7 +366,7 @@ async function loadMySlots(teacherId) {
         div.className = 'slot-manage-item';
         div.innerHTML = `
             <span>${days[slot.weekday]} | ${startTime} - ${endTime}</span>
-            <button onclick="handleDeleteSlot(${slot.id})" class="btn-delete">Elimina</button>
+            <button onclick="handleDeleteSlot(${slot.id})">Elimina</button>
         `;
         container.appendChild(div);
     });
@@ -380,6 +379,15 @@ async function handleAddSlot() {
     
     if(!start) { alert("Inserisci orario."); return; }
     
+    // Controllo validità minuti: accettiamo solo orari pieni (es. 15:00, 16:00)
+    // start è una stringa tipo "16:00". Splittiamo per prendere i minuti.
+    const minutes = start.split(':')[1];
+    
+    if (minutes !== "00") {
+        alert("Per favore, inserisci solo orari pieni (es. 16:00, 17:00). Non sono ammessi minuti.");
+        return; 
+    }
+
     // aggiungere disponibilita' tramite POST 
     const result = await postData('availability', {
         weekday: parseInt(day),

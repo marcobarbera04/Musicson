@@ -43,7 +43,38 @@ if ($method === 'GET') {
         exit;
     }
 
+    // Calcolo orari per controllo sovrapposizione (Durata fissa 1 ora)
+    $newStart = $input['start_time'];
+    // Calcolo la fine aggiungendo 1 ora all'inizio (es. 16:00 -> 17:00)
+    $newEnd = date('H:i:s', strtotime($newStart . ' +1 hour'));
+
     try {
+        // CONTROLLO SOVRAPPOSIZIONI
+        // Verifichiamo se esiste già uno slot che si accavalla con il nuovo orario
+        // start_time < new_end_time e (end_time > new_start_time)
+        //  ADDTIME(start_time, '01:00:00') perché nel DB c'e' solo start_time
+        $sqlCheck = "SELECT COUNT(*) as count FROM availability 
+                     WHERE teacher_id = :tid 
+                     AND weekday = :wd 
+                     AND (start_time < :new_end AND ADDTIME(start_time, '01:00:00') > :new_start)";
+        
+        $stmtCheck = $db->prepare($sqlCheck);
+        $stmtCheck->execute([
+            ':tid' => $user['id'],
+            ':wd' => $input['weekday'],
+            ':new_end' => $newEnd,
+            ':new_start' => $newStart
+        ]);
+
+        $result = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+
+        if ($result['count'] > 0) {
+            header('HTTP/1.1 409 Conflict'); // 409 = Conflitto
+            echo json_encode(["error" => "Orario non valido: si sovrappone a uno slot esistente."]);
+            exit;
+        }
+
+        // Inserimento (se non ci sono conflitti)
         $sql = "INSERT INTO availability (teacher_id, weekday, start_time) 
                 VALUES (:tid, :wd, :st)";
         $stmt = $db->prepare($sql);
@@ -55,17 +86,17 @@ if ($method === 'GET') {
         
         http_response_code(201);
         echo json_encode(["message" => "Slot aggiunto"]);
+
     } catch (PDOException $e) {
-        // Codice 23000 = Violazione vincolo Unique (Duplicato con weekday e start_time uguale)
+        // Codice 23000 = Violazione vincolo Unique (Duplicato esatto)
         if ($e->getCode() == 23000) {
-            header('HTTP/1.1 409 Conflict'); // 409 = Conflitto
-            echo json_encode(["error" => "Hai già inserito questo orario!"]);
+            header('HTTP/1.1 409 Conflict'); 
+            echo json_encode(["error" => "Hai già inserito questo orario esatto!"]);
         } else {
             header('HTTP/1.1 500 Internal Server Error');
             echo json_encode(["error" => "Errore DB: " . $e->getMessage()]);
         }
     }
-
 } elseif ($method === 'DELETE') {
     // Rimozione slot
     $input = json_decode(file_get_contents('php://input'), true);
