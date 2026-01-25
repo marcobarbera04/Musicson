@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: mysql_proj_web
--- Creato il: Gen 24, 2026 alle 22:01
+-- Creato il: Gen 25, 2026 alle 21:36
 -- Versione del server: 9.5.0
 -- Versione PHP: 8.3.26
 
@@ -26,7 +26,6 @@ SET time_zone = "+00:00";
 --
 
 INSERT INTO `appointments` (`id`, `student_id`, `teacher_id`, `datetime`, `meeting_link`) VALUES
-(21, 1, 2, '2026-01-26 17:00:00', 'https://meet.google.com/9e856fcee5'),
 (23, 1, 3, '2026-01-28 14:00:00', 'https://meet.google.com/d6d9b0b29f'),
 (24, 1, 3, '2026-01-27 15:00:00', 'https://meet.google.com/be81e8963f');
 
@@ -65,16 +64,18 @@ INSERT INTO `roles` (`id`, `role`) VALUES
 -- Dump dei dati per la tabella `teacher_instruments`
 --
 
-INSERT INTO `teacher_instruments` (`teacher_id`, `instrument_id`) VALUES
-(2, 1),
-(2, 2),
-(3, 3),
-(3, 2),
-(6, 1),
-(7, 4),
-(3, 1),
-(8, 1),
-(9, 1);
+INSERT INTO `teacher_instruments` (`id`, `teacher_id`, `instrument_id`) VALUES
+(1, 2, 5),
+(2, 2, 2),
+(3, 3, 3),
+(4, 3, 2),
+(5, 6, 1),
+(6, 7, 4),
+(7, 3, 1),
+(8, 8, 1),
+(9, 9, 1),
+(10, 14, 1),
+(11, 15, 1);
 
 --
 -- Dump dei dati per la tabella `users`
@@ -87,7 +88,11 @@ INSERT INTO `users` (`id`, `email`, `nickname`, `password`, `role`, `profile_pic
 (6, 'jhon@gmail.com', 'JhonLennon', '$2y$10$Jm8FI/HIEcONyJEOHKgNpO870C3E1q32LMqgmd/FOsgHiOpUKgkd.', 2, 'default.png'),
 (7, 'ringo@gmail.com', 'RingoStar', '$2y$10$tqUuXHu5p7p.rge6pfnmLOcqEJ/hvdo4kHCOWzEat31SrF1iwMe/.', 2, 'default.png'),
 (8, 'jimmy@gmail.com', 'JimmyPage', '$2y$10$o/gBjce4n6hyXVyY0PTtT.tW1WVy4Fy/2KQxeQeX5tpZiXpR9n1Ny', 2, 'default.png'),
-(9, 'jack@gmail.com', 'JackWhite', '$2y$10$NnAF76y1.1.hvJN3j/1pI.AJTChjSzMlAv624UZ3qNKQAKXJPZqjC', 2, 'default.png');
+(9, 'jack@gmail.com', 'JackWhite', '$2y$10$NnAF76y1.1.hvJN3j/1pI.AJTChjSzMlAv624UZ3qNKQAKXJPZqjC', 2, 'default.png'),
+(10, 'pino@gmail.com', 'pino', '$2y$10$YUOeHYAyA1vIrTzvUd1vLeKgITBHTgPcKxhvNMnOMR0tCgORKUKGG', 1, 'default.png'),
+(13, 'pietro@gmail.com', 'pietro', '$2y$10$zUDVWpyH37uxrNiCTrCz3eMGJ4xgrP3xpAmVFEgjCwazA6codoJv6', 1, 'default.png'),
+(14, 'edge@gmail.com', 'The Edge', '$2y$10$QMezcMy1kSS2ypMs8R9.oum3w6Ou/axQTpEYAOT/TuUOkargPUwEu', 2, 'default.png'),
+(15, 'eddie@gmail.com', 'Eddie Van Halen', '$2y$10$A6Ox3g/FRRSxpY8ane1DI.LB12GXEGoB696IDiol3qB0HnjCT2RUS', 2, 'default.png');
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

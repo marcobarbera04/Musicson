@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: mysql_proj_web
--- Creato il: Gen 24, 2026 alle 22:00
+-- Creato il: Gen 25, 2026 alle 21:35
 -- Versione del server: 9.5.0
 -- Versione PHP: 8.3.26
 
@@ -77,6 +77,7 @@ CREATE TABLE `roles` (
 --
 
 CREATE TABLE `teacher_instruments` (
+  `id` int NOT NULL,
   `teacher_id` int NOT NULL,
   `instrument_id` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -131,6 +132,7 @@ ALTER TABLE `roles`
 -- Indici per le tabelle `teacher_instruments`
 --
 ALTER TABLE `teacher_instruments`
+  ADD PRIMARY KEY (`id`),
   ADD KEY `teacher_id` (`teacher_id`),
   ADD KEY `instrument_id` (`instrument_id`);
 
@@ -168,6 +170,12 @@ ALTER TABLE `instruments`
 -- AUTO_INCREMENT per la tabella `roles`
 --
 ALTER TABLE `roles`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT per la tabella `teacher_instruments`
+--
+ALTER TABLE `teacher_instruments`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --

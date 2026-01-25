@@ -1,13 +1,6 @@
-/* * Gestisce la manipolazione del DOM, la generazione dell'HTML dinamico e la logica di presentazione.
- */
-
-// SETUP GENERALE UI
-
 /**
- * Gestisce lo stato globale dell'interfaccia (Loggato vs Non Loggato).
- * Mostra/Nasconde i container principali e aggiorna l'header con i dati utente.
- * * @param {boolean} isAuthenticated - True se il login è valido.
- * @param {object} userData - Oggetto contenente nickname e ruolo dell'utente.
+ * Aggiorna l'interfaccia in base allo stato di autenticazione.
+ * Mostra la dashboard se l'utente è loggato, altrimenti mostra il login.
  */
 function updateUI(isAuthenticated, userData = null) {
     const loginBox = document.getElementById('login-container');
@@ -15,11 +8,11 @@ function updateUI(isAuthenticated, userData = null) {
     const statusBox = document.getElementById('user-status');
 
     if (isAuthenticated) {
-        // UTENTE LOGGATO
-        loginBox.style.display = 'none';
-        contentBox.style.display = 'block';
+        // Utente Loggato
+        loginBox.style.display = 'none';    // nasconde il box di login
+        contentBox.style.display = 'block'; // mostra il container del contenuto
         
-        // Bottoni Home, Mie Lezioni, Profilo, Esci
+        // Inserisce i bottoni di controllo nell'header
         statusBox.innerHTML = `
             <div class="header-controls">
                 <span>Ciao <strong>${userData.nickname}</strong></span>
@@ -30,95 +23,114 @@ function updateUI(isAuthenticated, userData = null) {
             </div>
         `;
         
-        loadInstruments();
-        goHome(); 
+        loadInstruments();  // caricare gli strumenti nella datalist
+        goHome();           // mostra gli elementi della schermata principale
     } else {
-        // UTENTE NON LOGGATO
-        loginBox.style.display = 'block';
-        contentBox.style.display = 'none';
-        statusBox.innerHTML = "";
+        // Utente Non Loggato
+        loginBox.style.display = 'block';   // mostrare il box login
+        contentBox.style.display = 'none';  // nascondere contenuti
+        statusBox.innerHTML = "";           // nascondere status utente 
     }
 }
 
-// Navigazione verso la Home (pagina con ricerca)
+/**
+ * Alterna la visualizzazione tra Login e Registrazione.
+ * Pulisce i messaggi di errore al cambio vista.
+ */
+function toggleAuth(view) {
+    const loginContainer = document.getElementById('login-container');
+    const registerContainer = document.getElementById('register-container');
+    
+    const loginError = document.getElementById('login-error');  // scritta di errore login
+    const regError = document.getElementById('reg-error');      // scritta di errore registrazione
+
+    if(loginError) loginError.innerText = "";   // renderla non esistente
+    if(regError) regError.innerText = "";       // renderla non esistente
+
+    if (view === 'register') {  
+        // Se l'utente deve registrarsi
+        if(loginContainer) loginContainer.style.display = 'none';           // nasconde il container login
+        if(registerContainer) registerContainer.style.display = 'block';    // mostra il container register
+    } else {
+        // Se l'utente deve loggarsi
+        if(loginContainer) loginContainer.style.display = 'block';          // mostra il container login
+        if(registerContainer) registerContainer.style.display = 'none';     // nasconde il container register
+    }
+}
+
+// Resetta la vista principale per la ricerca
 function goHome() {
     const searchSection = document.querySelector('.search-section');
-    if(searchSection) searchSection.style.display = 'block';
+    if(searchSection) searchSection.style.display = 'block';        // mostrare la sezione di ricerca
     
     const container = document.getElementById('teachers-list');
-    container.innerHTML = '<p>Seleziona uno strumento e clicca Cerca Maestri.</p>';
-    document.getElementById('instrument-input').value = '';
+    container.innerHTML = '<p>Seleziona uno strumento e clicca Cerca Maestri.</p>'; 
+    document.getElementById('instrument-input').value = ''; // svuotare eventuali valori della barra di ricerca
 }
 
 /**
- * Popola il datalist HTML con l'elenco degli strumenti disponibili.
- * Effettua una chiamata GET /instruments.
+ * Carica la lista degli strumenti dal server e popola il datalist degli strumenti
  */
 async function loadInstruments() {
     const datalist = document.getElementById('instrument-list');
-    if (!datalist) return;
+    if (!datalist) return;  // se non trovata ritornare
     
-    const instruments = await getData('instruments');   // prendere gli strumenti con GET
+    const instruments = await getData('instruments');   // prendere gli strumenti tramite chiamata GET
     
     if (instruments) {
         datalist.innerHTML = '';
         instruments.forEach(ins => {
-            const opt = document.createElement('option');
-            opt.value = ins.name;
-            datalist.appendChild(opt);
+            const opt = document.createElement('option');   // creare opzione per ogni strumento (ins)
+            opt.value = ins.name;                           // assegnare il nome strumento all'opzione
+            datalist.appendChild(opt);                      // appendere l'opzione alla datalist
         });
     }
 }
 
-// LOGICA PROFESSORI (Ricerca e Visualizzazione) 
-
-// Gestione click bottone Cerca per cercare professori in base allo strumento 
+// Gestisce l'avvio della ricerca dei professori in base allo strumento
 function handleSearch() {
     const input = document.getElementById('instrument-input');
     const strumentoScelto = input.value.trim();
     if (!strumentoScelto) {
-        alert("Scrivi o seleziona uno strumento.");
+        alert("Scrivi o seleziona uno strumento."); // alert nel caso si provi a cercare senza uno strumento
         return;
     }
-    showTeachers(strumentoScelto);  // mostrare gli insegnanti in base allo strumento scelto (showTeachers da ui.js)
+    showTeachers(strumentoScelto);  // funzione che mostra gli insegnanti in base allo strumento scelto
 }
 
 /**
- * Recupera la lista dei professori filtrata per strumento e aggiorna la griglia nel DOM.
- * @param {string} strumento - La stringa di ricerca.
+ * Recupera i professori che insegnano lo strumento scelto e aggiorna la lista creando le card dei professori con la funzione apposita
  */
 async function showTeachers(strumento) {
     const listContainer = document.getElementById('teachers-list');
-    listContainer.innerHTML = '<p>Ricerca in corso...</p>';
+    listContainer.innerHTML = '<p>Ricerca in corso...</p>'; // scritta momentanea
 
-    const teachers = await getData('teachers', { strumento: strumento });   // prendere gli insegnianti con lo strumento scritto nella barra di ricerca/datalist
+    const teachers = await getData('teachers', { strumento: strumento });   // prende tutti i professori tramite chiamata GET con opzione lo strumento
 
     if (!teachers || teachers.length === 0) {
         listContainer.innerHTML = '<p>Nessun professore trovato.</p>';
         return;
     }
-
-    // Costruzione dinamica della griglia
+    // Crea un div per la griglia contenente le card dei professori
     let html = '<div class="teachers-grid">';
     teachers.forEach(t => html += createTeacherCard(t)); 
     listContainer.innerHTML = html + '</div>';
 }
 
 /**
- * Genera la stringa HTML per una singola card Professore.
- * @param {object} t - Oggetto professore (id, nickname, instruments, profile_picture).
- * @returns {string} - Template HTML della card.
+ * Crea il codice HTML per la card di un professore (t)
  */
 function createTeacherCard(t) {
-    const userRole = sessionStorage.getItem('user_role');                           // prendere il ruolo utente da sessionStorage ("1" o "2")
-    const imgPath = `img/profile_pictures/${t.profile_picture || 'default.png'}`;   // forziamo il fallback a default.png se il campo è vuoto o null
-    let bookingButton = '';                                                         // bottone prenotazione (nessun bottone di base)
+    const userRole = sessionStorage.getItem('user_role');   // prendere il ruolo dell'utente loggato dal session storage
+    const imgPath = `img/profile_pictures/${t.profile_picture || 'default.png'}`;
+    let bookingButton = ''; // bottone prenotazione non esistente inizialmente
 
-    // se l'utente e' studente il bottone prenota lezione esistera'
+    // Mostra il bottone prenota solo se l'utente è uno studente (ruolo 1)
     if(userRole == '1'){
         bookingButton = `<button onclick="openBookingModal(${t.id})">Prenota Lezione</button>`
     }
 
+    // Ritorna l'html con il div teacher card
     return `
         <div class="teacher-card">
             <img src="${imgPath}" class="teacher-img" alt="${t.nickname}"> 
@@ -128,153 +140,141 @@ function createTeacherCard(t) {
         </div>`;
 }
 
-// LOGICA PRENOTAZIONI LEZIONI (Popup/Modale Prenotazione)
-
 /**
- * Apre la modale di prenotazione, scarica gli orari disponibili del professore
- * e genera i bottoni per gli slot temporali.
- * @param {number} teacherId - ID del professore selezionato.
+ * Apre la finestra modale e carica gli orari disponibili del professore.
  */
 async function openBookingModal(teacherId) {
     const modal = document.getElementById('booking-modal');
     const container = document.getElementById('slots-container');
     
-    modal.style.display = 'flex';
-    container.innerHTML = 'Caricamento orari...';
+    modal.style.display = 'flex';                   // mostra la modale
+    container.innerHTML = 'Caricamento orari...';   // testo momentaneo
 
-    const availability = await getData('availability', { teacher_id: teacherId });  // prender le disponibilità del prof con get
+    const availability = await getData('availability', { teacher_id: teacherId });  // prendere le disponibilita' del professore con chiamata GET
 
+    // Se le disponibilita' non sono un array o non esistono errore
     if (!availability || !Array.isArray(availability)) {
         container.innerHTML = '<p>Errore nel caricamento dati.</p>';
         return;
     }
 
+    // Se il professore ha zero disponibilita' 
     if (availability.length === 0) {
         container.innerHTML = '<p>Questo professore non ha orari disponibili.</p>';
         return;
     }
 
-    container.innerHTML = ''; 
+    container.innerHTML = '';   // rimozione testo momentaneo
 
+    // Itera su ogni slot di disponibilità per creare il bottone di prenotazione
     availability.forEach(slot => {
-        // calcolare la data del prossimo giorno richiesto (es. prossimo Lunedì)
-        const dateObj = getNextDate(parseInt(slot.weekday)); 
+        const dateObj = getNextDate(parseInt(slot.weekday)); // calcola la data del prossimo giorno della settimana (es. Lunedi)
         
+        // Formattazione data per il database (YYYY-MM-DD)
         const year = dateObj.getFullYear();
-        const month = String(dateObj.getMonth() + 1).padStart(2, '0'); // Mesi partono da 0 in JS
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0'); // i mesi partono da 0
         const day = String(dateObj.getDate()).padStart(2, '0');
         const dateForDb = `${year}-${month}-${day}`;
 
-        const timeLabel = slot.start_time.slice(0, 5);  // formattare l'orario (es. 15:00:00 in 15:00)
+        const timeLabel = slot.start_time.slice(0, 5); // taglia i secondi dall'orario per la visualizzazione
         
-        // creare la stringa completa per il db (es: 2023-01-25 15:00:00)
-        const fullDateTime = `${dateForDb} ${slot.start_time}`; // slot.start_time ha già i secondi nel db
-        
-        // se slot.start_time e' "15:00" aggiungere ":00"
+        const fullDateTime = `${dateForDb} ${slot.start_time}`;
+        // Aggiunge i secondi se mancano per conformità col formato SQL
         const finalDateTime = fullDateTime.length === 16 ? fullDateTime + ":00" : fullDateTime;
 
-        // creazione bottone dello slot da prenotare
-        const btn = document.createElement('button');
-        // testo in formato Lun 23 Gen - 15:00
+        const btn = document.createElement('button'); // crea il bottone dello slot
+        // Formatta la data leggibile per l'utente (es. Lun 25 Gen)
         const dateReadable = dateObj.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' });
+        
         btn.innerHTML = `${dateReadable} - ${timeLabel}`;
+        btn.onclick = () => confirmBooking(teacherId, finalDateTime); // assegna la funzione di conferma al click
         
-        btn.onclick = () => confirmBooking(teacherId, finalDateTime);
-        
-        container.appendChild(btn);
+        container.appendChild(btn); // aggiunge il bottone al container
     });
 }
 
 /**
- * Invia la richiesta POST al server per salvare la prenotazione.
- * Gestisce i messaggi di successo o errore (es. slot occupato).
+ * Conferma la prenotazione e invia i dati al server.
  */
 async function confirmBooking(teacherId, datetime) {
-    const dateReadable = new Date(datetime).toLocaleString('it-IT');
-    if(!confirm("Confermi la prenotazione per: " + dateReadable + "?")) return;
+    const dateReadable = new Date(datetime).toLocaleString('it-IT');            // formatta la data in formato italiano
+    if(!confirm("Confermi la prenotazione per: " + dateReadable + "?")) return; // se viene rifiutato il confirm ritorna
 
-    // creare prenotazione/appuntamento con POST
+    // inserire l'appuntamento con il professore tramite chiamata POST
     const result = await postData('appointments', {
         teacher_id: teacherId,
         datetime: datetime
     });
 
     if (result && result.message) {
-        // successo notifica con alert e chiudere modale/popup  
-        alert("Prenotazione riuscita! Vai su 'Mie Lezioni'.");
-        document.getElementById('booking-modal').style.display = 'none';
+        alert("Prenotazione riuscita! Vai su 'Mie Lezioni'.");              // alert con successo di prenotazione
+        document.getElementById('booking-modal').style.display = 'none';    // nasconde il modale appena si chiude il modale e la prenotazione riesce 
     } else if (result && result.error) {
-        // errore (es. slot occupato) notifica e ricarica slot
-        alert("Errore: " + result.error);
-        openBookingModal(teacherId); 
+        alert("Errore: " + result.error);   // mostra errore specifico ricevuto dal backend
+        openBookingModal(teacherId);        // si riapre il modale per la prenotazione in caso di errore fino a quando non lo si chiude o si prenota
     } else {
-        // Errore Generico
-        alert("Errore durante la prenotazione. Riprova.");
+        alert("Errore durante la prenotazione. Riprova.");  // errore non gestito
     }
 }
 
 /**
- * Calcola la data esatta (Oggetto Date) del prossimo giorno della settimana richiesto.
- * @param {number} targetDayIndex - Indice del giorno (0=Domenica, 1=Lunedì...).
- * @returns {Date} - Oggetto Date calcolato.
+ * Calcola la data del prossimo giorno della settimana richiesto.
  */
 function getNextDate(targetDayIndex) {
     const date = new Date();
-    const currentDay = date.getDay(); 
+    const currentDay = date.getDay(); // ottiene l'indice del giorno corrente (0-6)
     
-    let daysToAdd = targetDayIndex - currentDay;    // calcolare differenziale giorni
+    let daysToAdd = targetDayIndex - currentDay; // calcola la differenza di giorni
     
-    // Se il giorno è oggi o passato, si sposta alla settimana successiva
+    // Se il giorno target è oggi o passato, sposta alla settimana successiva
     if (daysToAdd <= 0) {
         daysToAdd += 7;
     }
     
-    date.setDate(date.getDate() + daysToAdd);
+    date.setDate(date.getDate() + daysToAdd); // imposta la nuova data aggiungendo i giorni
     return date;
 }
 
-// LOGICA PRENOTAZIONE LEZIONI (Lista e Cancellazione)
-
 /**
- * Recupera gli appuntamenti dell'utente e aggiorna la vista principale.
- * Nasconde la sezione di ricerca per mostrare la lista lezioni.
+ * Recupera e mostra la lista delle prenotazioni dell'utente.
  */
 async function showMyAppointments() {
     const container = document.getElementById('teachers-list');
     const searchSection = document.querySelector('.search-section');
     
-    if(searchSection) searchSection.style.display = 'none'; // nascondere la barra di ricerca per fare spazio alle prenotazioni
-    container.innerHTML = '<p>Caricamento lezioni...</p>';
+    if(searchSection) searchSection.style.display = 'none'; // nasconde la barra di ricerca
+    container.innerHTML = '<p>Caricamento lezioni...</p>';  // testo di caricamento
     
-    const appointments = await getData('appointments');     // prendere gli appuntamenti con GET
+    const appointments = await getData('appointments');     // prendere gli appuntamenti con chiamata GET
 
+    // Se la lista è vuota o nulla mostra messaggio
     if (!appointments || appointments.length === 0) {
         container.innerHTML = '<h3>Le mie Prenotazioni</h3><p>Non hai ancora lezioni.</p>';
         return;
     }
 
-    let html = '<h3>Le mie Prenotazioni</h3><div class="appointments-list">';
-    appointments.forEach(app => html += createAppointmentCard(app));
-    container.innerHTML = html + '</div>';
+    let html = '<h3>Le mie Prenotazioni</h3><div class="appointments-list">';   // lista appuntamenti incompleta inizialmente
+    appointments.forEach(app => html += createAppointmentCard(app));            // aggiungere alla lista le card degli appuntamenti create con la funzione apposita
+    container.innerHTML = html + '</div>';                                      // inserisce l'html finale nel container
 }
 
 /**
- * Genera la stringa HTML per una singola card Appuntamento.
- * @param {object} app - Dati appuntamento (inclusi partner_name e partner_image dal JOIN).
- * @returns {string} - Template HTML.
+ * Crea il codice HTML per la card di un appuntamento.
  */
 function createAppointmentCard(app) {
-    const dateObj = new Date(app.datetime);
+    const dateObj = new Date(app.datetime); // converte la stringa data in oggetto Date
+    // formattazione data e ora in formato italiano
     const dateStr = dateObj.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     const timeStr = dateObj.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
     
-    const imgPath = `img/profile_pictures/${app.partner_image || 'default.png'}`;
+    const imgPath = `img/profile_pictures/${app.partner_image || 'default.png'}`; // imposta il percorso immagine o default se mancante
     
-    // generazione condizionale del link al meeting (se app.meeting_link esiste mostro quello senno' dico ancora non disponibile)
+    // genera il link al meeting se presente, altrimenti mostra un testo di attesa
     const linkHtml = app.meeting_link 
         ? `<a href="${app.meeting_link}" target="_blank">Accedi al Meeting</a>` 
         : `<span>Link non ancora disponibile</span>`;
 
+    // ritorna la stringa HTML completa per la card
     return `
         <div class="appointment-card">
             <img src="${imgPath}" class="appointment-img" alt="${app.partner_name}">
@@ -295,92 +295,86 @@ function createAppointmentCard(app) {
 }
 
 /**
- * Invia richiesta DELETE per rimuovere un appuntamento.
- * Richiede conferma utente e aggiorna la lista in caso di successo.
+ * Cancella una prenotazione esistente.
  */
 async function deleteBooking(appointmentId) {
-    if(!confirm("Sei sicuro di voler cancellare questa lezione? L'operazione è irreversibile.")) return;
+    if(!confirm("Sei sicuro di voler cancellare questa lezione? L'operazione è irreversibile.")) return;    // se viene rifiutato il confirm ritorna
 
-    const result = await deleteData('appointments', { id: appointmentId });     // rimuovere la prenotazione con DELETE
+    const result = await deleteData('appointments', { id: appointmentId }); // viene cancellato l'appuntamento tramite chiamata DELETE
 
     if (result && result.message) {
-        alert("Lezione cancellata.");   // notifica della cancellazione con successo
-        showMyAppointments();           // ricaricamento della lista per mostrare le modifiche
+        alert("Lezione cancellata.");
+        showMyAppointments();   // si mostra di nuovo i propri appuntamenti per ricaricare i dati
     } else {
         alert("Errore: " + (result.error || "Impossibile cancellare"));
     }
 }
 
-// LOGICA PROFILO E GESTIONE ORARI
-
 /**
- * Apre la modale profilo e popola i dati.
- * Recupera i dati dal server (GET profile.php).
+ * Apre la modale del profilo e mostra la gestione orari se l'utente è un docente.
  */
 async function openProfileModal() {
     const modal = document.getElementById('profile-modal');
     const teacherSection = document.getElementById('teacher-availability-section');
 
-    modal.style.display = 'flex';
+    modal.style.display = 'flex';   // mostrare la modale del profilo
     
-    const user = await getData('profile');  // recuperare i dati utente perche' serve id e ruolo (ruolo e' presente anche in sessionStorage)
+    const user = await getData('profile');  // prendere i dati del profilo tramite chiamata GET
     
     if (user) {
         if (user.role == 2) { 
-            teacherSection.style.display = 'block'; // se e' un insegnante mostrare il pannello di gestione orari
-            loadMySlots(user.id);
+            teacherSection.style.display = 'block'; // mostrare la sezione degli slot orari se il ruolo e' professore
+            loadMySlots(user.id);                   // caricare gli slot orari del utente loggato
         } else {
-            teacherSection.style.display = 'none';  // se e' studente nascondiamo la sezione orari
+            teacherSection.style.display = 'none';  // se l'utente non e' professore non mostrare la sezione degli slot orari
         }
     }
 }
 
 /**
- * Carica e renderizza la lista degli slot orari del docente loggato.
- * @param {number} teacherId 
+ * Carica gli slot orari configurati dal docente.
  */
 async function loadMySlots(teacherId) {
     const container = document.getElementById('my-slots-list');
-    container.innerHTML = 'Caricamento...';
+    container.innerHTML = 'Caricamento...'; // testo momentaneo
      
-    const slots = await getData('availability', { teacher_id: teacherId }); // prendere le disponibilita' insegnante con GET
+    const slots = await getData('availability', { teacher_id: teacherId }); // prendere gli slot orari del professore tramite chiamata GET
     
+    // Se la lista è nulla o vuota mostra messaggio
     if (!slots || slots.length === 0) {
         container.innerHTML = '<p>Nessun orario inserito.</p>';
         return;
     }
     
-    container.innerHTML = '';
-    const days = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];    // standard JS Domenica = 0, Lunedi = 1 ecc...
+    container.innerHTML = '';   // rimozione testo momentaneo
+    const days = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"]; // array per convertire indice numerico in giorno testuale
     
     slots.forEach(slot => {
-        const startTime = slot.start_time.slice(0, 5);  // tagliare i secondi dall'orario (15:00:00 diventa 15:00)
+        const startTime = slot.start_time.slice(0, 5); // formatta l'orario rimuovendo i secondi
         
-        // calcolare l'orario di fine (tutte le lezioni devono durare 1 ora)
-        // prendere le prime due cifre e convertirle in intero aggiungendo 1
         let startHour = parseInt(startTime.split(':')[0]);  
-        let endHour = startHour + 1;
+        let endHour = startHour + 1; // calcola l'orario di fine aggiungendo un'ora
         let endTime = endHour + ":00";
 
         const div = document.createElement('div');
         div.className = 'slot-manage-item';
+        // inserisce il testo con giorno e orari e il bottone per eliminare
         div.innerHTML = `
             <span>${days[slot.weekday]} | ${startTime} - ${endTime}</span>
             <button onclick="handleDeleteSlot(${slot.id})">Elimina</button>
         `;
-        container.appendChild(div);
+        container.appendChild(div); // aggiunge l'elemento alla lista
     });
 }
 
-// Gestione Aggiunta Slot (POST solo per professori)
+// Gestisce l'aggiunta di un nuovo slot orario
 async function handleAddSlot() {
-    const day = document.getElementById('new-slot-day').value;
-    const start = document.getElementById('new-slot-start').value;
+    const day = document.getElementById('new-slot-day').value;      // valore del giorno selezionato
+    const start = document.getElementById('new-slot-start').value;  // orario inserito
     
-    if(!start) { alert("Inserisci orario."); return; }
+    if(!start) { alert("Inserisci orario."); return; } // controllo presenza orario
     
-    // Controllo validità minuti: accettiamo solo orari pieni (es. 15:00, 16:00)
-    // start è una stringa tipo "16:00". Splittiamo per prendere i minuti.
+    // Controlla che vengano inseriti solo orari interi (es. 15:00) verificando i minuti
     const minutes = start.split(':')[1];
     
     if (minutes !== "00") {
@@ -388,29 +382,29 @@ async function handleAddSlot() {
         return; 
     }
 
-    // aggiungere disponibilita' tramite POST 
+    // invia la nuova disponibilità al server con chiamata POST
     const result = await postData('availability', {
         weekday: parseInt(day),
         start_time: start + ":00" 
     });
     
     if (result && result.message) {
-        const user = await getData('profile');  // prendere dati utente perche' serve l'id per caricare i suoi slot
-        loadMySlots(user.id);
+        const user = await getData('profile');  // recupera dati utente per avere l'id
+        loadMySlots(user.id);                   // ricarica la lista degli slot aggiornata
     } else {
         alert("Errore: " + (result.error || "Impossibile aggiungere"));
     }
 }
 
-// Gestione Rimozione Slot (DELETE solo per professori)
+// Gestisce l'eliminazione di uno slot orario
 async function handleDeleteSlot(slotId) {
-    if(!confirm("Eliminare questo orario?")) return;
+    if(!confirm("Eliminare questo orario?")) return; // chiede conferma prima di procedere
     
-    const result = await deleteData('availability', { id: slotId });
+    const result = await deleteData('availability', { id: slotId }); // elimina lo slot tramite chiamata DELETE
     
     if (result && result.message) {
-        const user = await getData('profile');
-        loadMySlots(user.id);
+        const user = await getData('profile');  // recupera dati utente per avere l'id
+        loadMySlots(user.id);                   // ricarica la lista degli slot aggiornata
     } else {
         alert("Errore durante l'eliminazione.");
     }

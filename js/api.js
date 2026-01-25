@@ -1,8 +1,3 @@
-/* * Modulo responsabile della comunicazione HTTP col server e della gestione della sessione locale.
- */
-
-// FUNZIONALITA' NETWORKING 
-
 /**
  * Wrapper per la funzione nativa fetch.
  * Inietta automaticamente l'header 'Authorization' se sono presenti credenziali in sessione.

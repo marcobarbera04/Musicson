@@ -12,12 +12,27 @@
     </header>
 
     <main id="app">
-        <div id="login-container" class="hidden">
-            <h2>Accedi</h2>
+        <div id="login-container">
+            <h2>Accedi a Musicson</h2>
             <input type="email" id="login-email" placeholder="Email">
             <input type="password" id="login-password" placeholder="Password">
             <button id="login-button">Entra</button>
-            <p id="login-error" class="error-msg"></p>
+            <p id="login-error" style="color:red"></p>
+            
+            <p>Non hai un account? <a href="#" onclick="toggleAuth('register')">Registrati qui</a></p>
+        </div>
+
+        <div id="register-container" style="display:none;">
+            <h2>Crea Account</h2>
+            <input type="text" id="reg-nickname" placeholder="Nickname (Nome)">
+            <input type="email" id="reg-email" placeholder="Email">
+            <input type="password" id="reg-password" placeholder="Password">
+            
+            <button id="register-button">Registrati</button>
+            
+            <p id="reg-error" style="color:red"></p>
+            
+            <p>Hai già un account? <a href="#" onclick="toggleAuth('login')">Accedi</a></p>
         </div>
 
         <div id="content-container" class="hidden">
