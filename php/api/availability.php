@@ -2,6 +2,7 @@
 header('Content-Type: application/json');
 require_once '../config/db.php';
 
+// Verifica autenticazione
 if (!isset($_SERVER['PHP_AUTH_USER'])) {
     header('HTTP/1.0 401 Unauthorized');
     exit;
@@ -11,12 +12,12 @@ $db = getDbConnection();
 $currentUserEmail = $_SERVER['PHP_AUTH_USER'];
 $method = $_SERVER['REQUEST_METHOD'];
 
-// Recupero utente per controlli di sicurezza
+// Recupero dati utente per controlli di ruolo
 $stmtUser = $db->prepare("SELECT id, role FROM users WHERE email = ?");
 $stmtUser->execute([$currentUserEmail]);
 $user = $stmtUser->fetch(PDO::FETCH_ASSOC);
 
-// Solo i professori possono gestire la disponibilità (POST/DELETE)
+// Blocco operazioni di modifica (POST/DELETE) se l'utente non è professore
 if (($method === 'POST' || $method === 'DELETE') && $user['role'] != 2) {
     header('HTTP/1.1 403 Forbidden');
     echo json_encode(["error" => "Solo i professori possono modificare gli orari"]);
@@ -24,35 +25,33 @@ if (($method === 'POST' || $method === 'DELETE') && $user['role'] != 2) {
 }
 
 if ($method === 'GET') {
+    // Recupero slot orari disponibili per un professore specifico
     $teacher_id = $_GET['teacher_id'] ?? null;
     if (!$teacher_id) { echo json_encode([]); exit; }
     
-    // Aggiungo anche l'ID dello slot per poterlo cancellare dopo
     $stmt = $db->prepare("SELECT id, weekday, start_time FROM availability WHERE teacher_id = ? ORDER BY weekday, start_time");
     $stmt->execute([$teacher_id]);
     echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
 
 } elseif ($method === 'POST') {
-    // Creazione nuovo slot
+    // Creazione nuovo slot orario
     $input = json_decode(file_get_contents('php://input'), true);
 
-    // Validazione di base
+    // Validazione dati in ingresso
     if (!isset($input['weekday']) || !isset($input['start_time'])) {
         header('HTTP/1.1 400 Bad Request');
         echo json_encode(["error" => "Dati mancanti"]);
         exit;
     }
 
-    // Calcolo orari per controllo sovrapposizione (Durata fissa 1 ora)
+    // Calcolo orari fine per verifica sovrapposizioni
     $newStart = $input['start_time'];
-    // Calcolo la fine aggiungendo 1 ora all'inizio (es. 16:00 -> 17:00)
     $newEnd = date('H:i:s', strtotime($newStart . ' +1 hour'));
 
     try {
-        // CONTROLLO SOVRAPPOSIZIONI
-        // Verifichiamo se esiste già uno slot che si accavalla con il nuovo orario
-        // start_time < new_end_time e (end_time > new_start_time)
-        //  ADDTIME(start_time, '01:00:00') perché nel DB c'e' solo start_time
+        // Verifica esistenza slot sovrapposti nel DB
+        // Verifica se esiste già uno slot che si accavalla con il nuovo orario
+        // start_time < new_end_time e end_time > new_start_time
         $sqlCheck = "SELECT COUNT(*) as count FROM availability 
                      WHERE teacher_id = :tid 
                      AND weekday = :wd 
@@ -69,12 +68,12 @@ if ($method === 'GET') {
         $result = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
         if ($result['count'] > 0) {
-            header('HTTP/1.1 409 Conflict'); // 409 = Conflitto
+            header('HTTP/1.1 409 Conflict'); // Errore conflitto
             echo json_encode(["error" => "Orario non valido: si sovrappone a uno slot esistente."]);
             exit;
         }
 
-        // Inserimento (se non ci sono conflitti)
+        // Inserimento nuovo slot se non ci sono conflitti
         $sql = "INSERT INTO availability (teacher_id, weekday, start_time) 
                 VALUES (:tid, :wd, :st)";
         $stmt = $db->prepare($sql);
@@ -88,7 +87,7 @@ if ($method === 'GET') {
         echo json_encode(["message" => "Slot aggiunto"]);
 
     } catch (PDOException $e) {
-        // Codice 23000 = Violazione vincolo Unique (Duplicato esatto)
+        // Gestione errore duplicato esatto (vincolo unique)
         if ($e->getCode() == 23000) {
             header('HTTP/1.1 409 Conflict'); 
             echo json_encode(["error" => "Hai già inserito questo orario esatto!"]);
@@ -98,7 +97,7 @@ if ($method === 'GET') {
         }
     }
 } elseif ($method === 'DELETE') {
-    // Rimozione slot
+    // Rimozione slot orario
     $input = json_decode(file_get_contents('php://input'), true);
 
     if (!isset($input['id'])) {
@@ -106,7 +105,7 @@ if ($method === 'GET') {
         exit;
     }
 
-    // Cancello solo se lo slot appartiene al professore loggato
+    // Cancellazione solo se lo slot appartiene al professore autenticato
     $sql = "DELETE FROM availability WHERE id = :id AND teacher_id = :tid";
     $stmt = $db->prepare($sql);
     $stmt->execute([

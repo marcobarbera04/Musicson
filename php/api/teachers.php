@@ -1,12 +1,11 @@
 <?php
-// Impostiamo l'header per dire al client che stiamo inviando dati JSON, non HTML.
+// Imposta l'header per risposta in formato JSON
 header('Content-Type: application/json');
 
-// Inclusione del file di configurazione del database
+// Include file di configurazione DB
 require_once '../config/db.php';
 
-// CONTROLLO AUTENTICAZIONE (STATELESS)
-// Verifichiamo se il client ha inviato le credenziali Basic Auth.
+// Verifica presenza credenziali Basic Auth
 if (!isset($_SERVER['PHP_AUTH_USER'])) {
     header('HTTP/1.0 401 Unauthorized');
     echo json_encode(["error" => "Accesso negato: Autenticazione richiesta"]);
@@ -16,14 +15,13 @@ if (!isset($_SERVER['PHP_AUTH_USER'])) {
 $db = getDbConnection();
 $method = $_SERVER['REQUEST_METHOD'];
 
-// GESTIONE DELLA RICHIESTA GET
+// Gestione richiesta GET per recupero lista professori
 if ($method === 'GET') {
-    // Recuperiamo il parametro 'strumento' dalla query string (es. teachers.php?strumento=Chitarra)
-    // Se non presente, sarà null (mostra tutti).
+    // Recupera parametro opzionale 'strumento' dalla query string
     $strumento = isset($_GET['strumento']) ? $_GET['strumento'] : null;
 
     try {
-        // GROUP_CONCAT serve per unire più righe (più strumenti) in una sola stringa per professore.
+        // Query base: seleziona utenti con ruolo professore e concatena i loro strumenti 
         $sql = "SELECT 
                     u.id, 
                     u.nickname,
@@ -32,13 +30,10 @@ if ($method === 'GET') {
                 FROM users u
                 JOIN teacher_instruments ti ON u.id = ti.teacher_id
                 JOIN instruments i ON ti.instrument_id = i.id
-                WHERE u.role = 2"; // Filtriamo solo gli utenti che sono Professori
+                WHERE u.role = 2"; 
 
-        // Filtro Opzionale
-        // Se l'utente sta cercando uno strumento specifico, aggiungiamo una condizione.
+        // Se presente filtro strumento, aggiunge condizione alla query (es. teachers.php?strumento=Chitarra)
         if ($strumento) {
-            // Usiamo una sottoquery per trovare i prof che insegnano quello strumento,
-            // ma manteniamo la visualizzazione di TUTTI i loro strumenti nella card.
             $sql .= " AND u.id IN (
                         SELECT ti2.teacher_id 
                         FROM teacher_instruments ti2 
@@ -47,30 +42,28 @@ if ($method === 'GET') {
                     )";
         }
 
-        // Raggruppamento (Necessario per GROUP_CONCAT)
+        // Raggruppa per ID utente per funzionamento GROUP_CONCAT
         $sql .= " GROUP BY u.id";
         
-        // PREPARAZIONE DELLA QUERY (SICUREZZA)
-        // Usiamo prepare() invece di query() per evitare SQL Injection.
         $stmt = $db->prepare($sql);
 
-        // Se c'è un filtro, associamo il valore al placeholder :nome_strumento
+        // Associa parametro filtro se presente
         if ($strumento) {
             $stmt->bindParam(':nome_strumento', $strumento);
         }
 
-        // Esecuzione e invio risultati
+        // Esegue query e invia risultati JSON
         $stmt->execute();
         $teachers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         echo json_encode($teachers);
 
     } catch (PDOException $e) {
-        // Gestione errori server (restituiamo un JSON valido anche in caso di crash)
         header('HTTP/1.1 500 Internal Server Error');
         echo json_encode(["error" => "Errore database: " . $e->getMessage()]);
     }
 } else {
-    // Se il client prova metodi non supportati (es. DELETE)
+    // Gestione metodo non supportato
     header('HTTP/1.1 405 Method Not Allowed');
 }
+?>

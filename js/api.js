@@ -1,83 +1,69 @@
 /**
- * Wrapper per la funzione nativa fetch.
- * Inietta automaticamente l'header 'Authorization' se sono presenti credenziali in sessione.
- * * @param {string} url - L'endpoint da chiamare.
- * @param {object} options - Opzioni standard della fetch (method, headers, body).
- * @returns {Promise<Response>} - Oggetto Response nativo.
+ * Funzione wrap per la fetch nativa aggiungendo le credenziali se presenti
+ * serve per evitare di scrivere l'header Authorization in ogni chiamata.
  */
 async function fetchAuth(url, options = {}) {
-    const auth = sessionStorage.getItem('user_auth');
+    const auth = sessionStorage.getItem('user_auth'); // recupera credenziali da session storage
+    
     if (auth) {
-        // Spread operator (...) per mantenere header esistenti e aggiungere Authorization
+        // Mantiene gli header esistenti e aggiunge quello di autorizzazione Basic
         options.headers = { ...options.headers, 'Authorization': `Basic ${auth}` };
     }
-    return fetch(url, options);
+    return fetch(url, options); // esegue la richiesta standard
 }
 
-// Procedura di Logout
+// Effettua il logout pulendo i dati e ricaricando la pagina
 function logout() {
-    sessionStorage.removeItem('user_auth');     // pulizia credenziali sessionStorage
-    sessionStorage.removeItem('user_role');     // pulizia ruolo sessionStorage
-    location.reload();                          // ricarica pagina per resettare lo stato dell'applicazione
+    sessionStorage.removeItem('user_auth');     // rimuove le credenziali
+    sessionStorage.removeItem('user_role');     // rimuove il ruolo
+    location.reload();                          // ricarica la pagina per tornare alla schermata di login
 }
-
-// METODI HTTP (CRUD)
 
 /**
- * Esegue una richiesta GET autenticata.
- * Gestisce la costruzione della Query String e il controllo della scadenza sessione (401).
- * * @param {string} resource - Il nome della risorsa (es. 'teachers', 'appointments').
- * @param {object|null} params - Oggetto chiave-valore per i parametri GET (es. {strumento: 'Piano'}).
- * @returns {Promise<object|null>} - Il JSON di risposta o null in caso di errore auth.
+ * Esegue una richiesta GET al server
+ * gestisce i parametri nell'URL e il logout automatico in caso di errore 401
  */
 async function getData(resource, params = null) {
     let url = `php/api/${resource}.php`;
 
-    // Conversione parametri oggetto -> Query String (es. ?strumento=Piano&min=1)
+    // Se ci sono parametri, li converte in stringa per l'URL (es. ?strumento=Piano)
     if (params) {
         const queryString = new URLSearchParams(params).toString();
         url += `?${queryString}`;
     }
 
-    const response = await fetchAuth(url);
+    const response = await fetchAuth(url); // esegue la chiamata autenticata
     
-    // Gestione errore 401 (Unauthorized): Sessione scaduta o invalida
+    // Se la sessione è scaduta o non valida (errore 401)
     if (response.status === 401) {
-        sessionStorage.removeItem('user_auth');
-        location.reload(); // Ricarica forzata per tornare al login
+        sessionStorage.removeItem('user_auth'); // pulisce la sessione corrotta
+        location.reload();                      // ricarica la pagina per forzare il login
         return null;
     }
     
-    return await response.json();
+    return await response.json(); // ritorna i dati in formato JSON
 }
 
 /**
- * Esegue una richiesta POST autenticata per creare nuove risorse.
- * Invia i dati in formato JSON.
- * * @param {string} resource - Il nome della risorsa.
- * @param {object} data - Il payload dei dati da inviare.
- * @returns {Promise<object>} - Il JSON di risposta del server.
+ * Esegue una richiesta POST per inserire nuovi dati nel database
  */
 async function postData(resource, data) {
     const response = await fetchAuth(`php/api/${resource}.php`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        method: 'POST',                                     // imposta il metodo POST
+        headers: { 'Content-Type': 'application/json' },    // imposta il tipo di contenuto come JSON
+        body: JSON.stringify(data)                          // converte i dati JavaScript in stringa JSON
     });
     return await response.json();
 }
 
 /**
- * Esegue una richiesta DELETE autenticata per rimuovere risorse.
- * * @param {string} resource - Il nome della risorsa.
- * @param {object} data - Il payload contenente l'ID da eliminare.
- * @returns {Promise<object>} - Il JSON di risposta.
+ * Esegue una richiesta DELETE per eliminare dati dal database
  */
 async function deleteData(resource, data) {
     const response = await fetchAuth(`php/api/${resource}.php`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        method: 'DELETE',                                   // imposta il metodo DELETE
+        headers: { 'Content-Type': 'application/json' },    // imposta il tipo di contenuto come JSON
+        body: JSON.stringify(data)                          // invia l'ID da cancellare nel corpo della richiesta
     });
     return await response.json();
 }

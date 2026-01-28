@@ -2,7 +2,7 @@
 header('Content-Type: application/json');
 require_once '../config/db.php';
 
-// Controllo sessione utente (Best Practice: proteggere anche le risorse "pubbliche")
+// Controllo sicurezza sessione (richiesto anche per risorse pubbliche)
 if (!isset($_SERVER['PHP_AUTH_USER'])) {
     header('HTTP/1.0 401 Unauthorized');
     echo json_encode(["error" => "Accesso negato"]);
@@ -14,8 +14,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
     try {
-        // Recuperiamo tutti gli strumenti ordinandoli alfabeticamente (A-Z)
-        // Questo migliora l'esperienza utente nella lista di ricerca.
+        // Recupero tutti gli strumenti ordinati alfabeticamente
         $sql = "SELECT id, name FROM instruments ORDER BY name ASC";
         
         $stmt = $db->query($sql);
@@ -31,3 +30,4 @@ if ($method === 'GET') {
     header('HTTP/1.1 405 Method Not Allowed');
     echo json_encode(["error" => "Metodo non supportato"]);
 }
+?>

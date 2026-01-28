@@ -2,7 +2,7 @@
 header('Content-Type: application/json');
 require_once '../config/db.php';
 
-// Verifica Autenticazione
+// Verifica autenticazione utente
 if (!isset($_SERVER['PHP_AUTH_USER'])) {
     header('HTTP/1.0 401 Unauthorized');
     echo json_encode(["error" => "Accesso negato"]);
@@ -14,7 +14,7 @@ $currentUserEmail = $_SERVER['PHP_AUTH_USER'];
 $method = $_SERVER['REQUEST_METHOD'];
 
 try {
-    // Recupero ID, nickname e ruolo dell'utente corrente
+    // Recupero dati utente corrente basandosi sull'email autenticata
     $stmtUser = $db->prepare("SELECT id, nickname, role, profile_picture FROM users WHERE email = ?");
     $stmtUser->execute([$currentUserEmail]);
     $user = $stmtUser->fetch(PDO::FETCH_ASSOC);
@@ -25,11 +25,8 @@ try {
     }
 
     if ($method === 'GET') {
-        // Restituisce i dati del profilo
-        echo json_encode($user);
-
+        echo json_encode($user);    // Invio dati del profilo in formato JSON
     } else {
-        // Rifiutiamo PUT, POST e DELETE su questo endpoint
         header('HTTP/1.1 405 Method Not Allowed');
         echo json_encode(["error" => "Metodo non consentito"]);
     }
